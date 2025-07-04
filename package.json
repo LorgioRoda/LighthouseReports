@@ -4,7 +4,7 @@
 	"type": "module",
 	"scripts": {
 		"lhci": "lhci autorun --collect.url=https://www.google.com --upload.target=filesystem --upload.outputDir=. --upload.filename=report.lighthouse.report.json",
-		"upload-gist": "node src/upload-gist.ts --file=report.lighthouse.report.json --gist=$LIGHTHOUSE_GIST_ID"
+		"upload-gist": "node src/upload-gist.js --file=report.lighthouse.report.json --gist=$LIGHTHOUSE_GIST_ID"
 	},
 	"devDependencies": {
 		"@lhci/cli": "^0.10.0",
