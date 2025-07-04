@@ -18,7 +18,7 @@ jobs:
       - name: Run Lighthouse CI
         run: npm run lhci
 
-      - name: Subir informe a Gist
+      - name: Upload Gist
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN || secrets.GITHUB_TOKEN }}
           LIGHTHOUSE_GIST_ID: ${{ secrets.LIGHTHOUSE_GIST_ID }}
