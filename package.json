@@ -3,7 +3,7 @@
 	"version": "0.0.1",
 	"type": "module",
 	"scripts": {
-		"lhci": "lhci autorun --collect.url=https://www.google.com --upload.target=filesystem --upload.outputDir=. --upload.filename=report.lighthouse.report.json",
+		"lhci": "lhci autorun --collect.url=https://www.cupraofficial.dk/carshop/w/model --upload.target=filesystem --upload.outputDir=. --upload.filename=report.lighthouse.report.json",
 		"upload-gist": "node --loader ts-node/esm src/upload-gist.ts --gist=$LIGHTHOUSE_GIST_ID"
 	},
 	"devDependencies": {
