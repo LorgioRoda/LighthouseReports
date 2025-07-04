@@ -1,5 +1,8 @@
 name: "CI Lighthouse Gist"
 
+schedule:
+  - cron: "0 7 * * *"
+
 on:
   push:
     branches:
