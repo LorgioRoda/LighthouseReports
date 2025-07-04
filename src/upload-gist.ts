@@ -3,85 +3,174 @@ import * as fs from "fs";
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 
-async function main() {
-  const argv = yargs(hideBin(process.argv))
-    .usage("Usage: $0 [--file <path>] [--gist <id>]")
-    .option("file", {
-      alias: "f",
-      type: "string",
-      describe: "Ruta al JSON de Lighthouse",
-    })
-    .option("gist", {
-      alias: "g",
-      type: "string",
-      describe: "ID del Gist a actualizar (omit para crear uno nuevo)",
-    })
-    .help()
-    .parseSync();
+interface ManifestRun {
+  url: string;
+  isRepresentativeRun: boolean;
+  htmlPath: string;
+  jsonPath: string;
+  summary: {
+    performance: number;
+    accessibility: number;
+    "best-practices": number;
+    seo: number;
+    pwa: number;
+  };
+}
 
-  const token = process.env.GH_TOKEN || process.env.GITHUB_TOKEN;
-  if (!token) {
-    console.error("❌ Necesitas definir GH_TOKEN o usar GITHUB_TOKEN de Actions.");
-    process.exit(1);
+interface CliArgs {
+  file?: string;
+  gist?: string;
+}
+
+class LighthouseGistUploader {
+  private octokit: Octokit;
+
+  constructor(token: string) {
+    this.octokit = new Octokit({ auth: token });
   }
 
-  const octokit = new Octokit({ auth: token });
 
-  let reportPath: string;
-  let filename: string;
-
-  if (argv.file) {
-    reportPath = argv.file;
-    filename = argv.file.split("/").pop() || argv.file;
-  } else {
-    // Read from manifest.json to get the representative run
+  private readManifest(): ManifestRun[] {
     try {
       const manifestContent = fs.readFileSync("manifest.json", "utf-8");
-      const manifest = JSON.parse(manifestContent);
-      const representativeRun = manifest.find((run: any) => run.isRepresentativeRun);
-      
-      if (!representativeRun) {
-        console.error("❌ No se encontró el run representativo en manifest.json");
-        process.exit(1);
-      }
-      
-      reportPath = representativeRun.jsonPath;
-      filename = reportPath.split("/").pop() || "lighthouse-report.json";
-      console.log(`📊 Usando el run representativo: ${filename}`);
+      return JSON.parse(manifestContent);
     } catch (err) {
-      console.error("❌ No pude leer manifest.json:", err);
+      console.error("❌ Unable to read manifest.json:", err);
       process.exit(1);
     }
   }
 
-  let content: string;
-  try {
-    content = fs.readFileSync(reportPath, "utf-8");
-  } catch (err) {
-    console.error(`❌ No pude leer el archivo ${reportPath}:`, err);
-    process.exit(1);
+
+  private findRepresentativeRun(manifest: ManifestRun[]): ManifestRun {
+    const representativeRun = manifest.find(run => run.isRepresentativeRun);
+    
+    if (!representativeRun) {
+      console.error("❌ No representative run found in manifest.json");
+      process.exit(1);
+    }
+
+    return representativeRun;
   }
 
-  try {
-    if (argv.gist) {
-      await octokit.gists.update({
-        gist_id: argv.gist,
-        files: { [filename]: { content } },
-      });
-      console.log(`✅ Gist ${argv.gist} actualizado.`);
-    } else {
-      const res = await octokit.gists.create({
+  private getReportInfo(filePath?: string): { reportPath: string; filename: string } {
+    if (filePath) {
+      return {
+        reportPath: filePath,
+        filename: filePath.split("/").pop() || filePath
+      };
+    }
+
+
+    const manifest = this.readManifest();
+    const representativeRun = this.findRepresentativeRun(manifest);
+    const filename = representativeRun.jsonPath.split("/").pop() || "lighthouse-report.json";
+    
+    console.log(`📊 Using representative run: ${filename}`);
+    
+    return {
+      reportPath: representativeRun.jsonPath,
+      filename
+    };
+  }
+
+  /**
+   * Reads the lighthouse report file
+   */
+  private readReportFile(reportPath: string): string {
+    try {
+      return fs.readFileSync(reportPath, "utf-8");
+    } catch (err) {
+      console.error(`❌ Unable to read report file ${reportPath}:`, err);
+      process.exit(1);
+    }
+  }
+
+
+  private async createGist(filename: string, content: string): Promise<void> {
+    try {
+      const response = await this.octokit.gists.create({
         files: { [filename]: { content } },
         public: false,
-        description: "Informe Lighthouse CI generado automáticamente",
+        description: "Lighthouse CI report generated automatically"
       });
-      console.log(`✅ Gist creado: ${res.data.id}`);
-      console.log(`🔗 Visor: https://googlechrome.github.io/lighthouse/viewer/?gist=${res.data.id}`);
+
+      console.log(`✅ Gist created: ${response.data.id}`);
+      console.log(`🔗 Viewer: https://googlechrome.github.io/lighthouse/viewer/?gist=${response.data.id}`);
+    } catch (err) {
+      console.error("❌ Error creating gist:", err);
+      process.exit(1);
     }
-  } catch (err) {
-    console.error("❌ Error con la API de GitHub:", err);
-    process.exit(1);
+  }
+
+
+  private async updateGist(gistId: string, filename: string, content: string): Promise<void> {
+    try {
+      await this.octokit.gists.update({
+        gist_id: gistId,
+        files: { [filename]: { content } }
+      });
+
+      console.log(`✅ Gist ${gistId} updated successfully`);
+      console.log(`🔗 Viewer: https://googlechrome.github.io/lighthouse/viewer/?gist=${gistId}`);
+    } catch (err) {
+      console.error("❌ Error updating gist:", err);
+      process.exit(1);
+    }
+  }
+
+
+  async upload(args: CliArgs): Promise<void> {
+    const { reportPath, filename } = this.getReportInfo(args.file);
+    const content = this.readReportFile(reportPath);
+
+    if (args.gist) {
+      await this.updateGist(args.gist, filename, content);
+    } else {
+      await this.createGist(filename, content);
+    }
   }
 }
 
-main();
+
+function getGitHubToken(): string {
+  const token = process.env.GH_TOKEN || process.env.GITHUB_TOKEN;
+  
+  if (!token) {
+    console.error("❌ You need to define GH_TOKEN or use GITHUB_TOKEN from Actions");
+    process.exit(1);
+  }
+
+  return token;
+}
+
+
+function parseArguments(): CliArgs {
+  return yargs(hideBin(process.argv))
+    .usage("Usage: $0 [--file <path>] [--gist <id>]")
+    .option("file", {
+      alias: "f",
+      type: "string",
+      describe: "Path to the Lighthouse JSON report (optional, uses manifest.json by default)"
+    })
+    .option("gist", {
+      alias: "g",
+      type: "string",
+      describe: "Gist ID to update (omit to create a new one)"
+    })
+    .help()
+    .parseSync();
+}
+
+
+async function main(): Promise<void> {
+  const args = parseArguments();
+  const token = getGitHubToken();
+  const uploader = new LighthouseGistUploader(token);
+
+  await uploader.upload(args);
+}
+
+main().catch(err => {
+  console.error("❌ Unexpected error:", err);
+  process.exit(1);
+});
