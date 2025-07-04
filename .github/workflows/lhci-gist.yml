@@ -5,6 +5,11 @@ on:
     branches:
       - main
 
+env:
+    ENV: prod
+    GH_TOKEN: ${{ secrets.GH_TOKEN }}
+    LIGHTHOUSE_GIST_ID: ${{ secrets.LIGHTHOUSE_GIST_ID }}
+
 jobs:
   perf:
     runs-on: ubuntu-latest
