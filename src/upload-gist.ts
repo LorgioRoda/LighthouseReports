@@ -32,8 +32,11 @@ class LighthouseGistUploader {
 
   private readManifest(): ManifestRun[] {
     try {
-      const manifestContent = fs.readFileSync("./.lighthouse-reports/manifest.json", "utf-8");
-      return JSON.parse(manifestContent);
+      const manifestContentDesktop = fs.readFileSync("./.lighthouse-reports/desktop/manifest.json", "utf-8");
+      const manifestContentMobile = fs.readFileSync("./.lighthouse-reports/mobile/manifest.json", "utf-8");
+      console.log([...JSON.parse(manifestContentDesktop), ...JSON.parse(manifestContentMobile)]);
+      
+      return [...JSON.parse(manifestContentDesktop), ...JSON.parse(manifestContentMobile)];
     } catch (err) {
       console.error("❌ Unable to read manifest.json:", err);
       process.exit(1);
