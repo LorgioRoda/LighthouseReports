@@ -32,7 +32,7 @@ class LighthouseGistUploader {
 
   private readManifest(): ManifestRun[] {
     try {
-      const manifestContent = fs.readFileSync("./.lighthouseci/manifest.json", "utf-8");
+      const manifestContent = fs.readFileSync("./.lighthouse-reports/manifest.json", "utf-8");
       return JSON.parse(manifestContent);
     } catch (err) {
       console.error("❌ Unable to read manifest.json:", err);
