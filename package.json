@@ -4,6 +4,9 @@
 	"type": "module",
 	"scripts": {
 		"lhci": "lhci autorun",
+		"lhci:mobile": "lhci autorun --config=.lighthouserc.mobile.cjs",
+		"lhci:desktop": "lhci autorun --config=.lighthouserc.desktop.cjs",
+		"lhci:all": "npm run lhci:mobile && npm run lhci:desktop",
 		"upload-gist": "node --loader ts-node/esm src/upload-gist.ts --gist=$LIGHTHOUSE_GIST_ID"
 	},
 	"devDependencies": {

@@ -11,7 +11,7 @@ module.exports = {
       },
       upload: {
         target: 'filesystem',
-        outputDir: './.lighthouse-reports',
+        outputDir: './.lighthouse-reports/mobile',
       },
     },
   };
