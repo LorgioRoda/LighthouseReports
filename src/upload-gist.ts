@@ -37,7 +37,7 @@ interface GistResult {
   performance: number;
 }
 
-class LighthouseGistUploader {
+export class LighthouseGistUploader {
   private octokit: Octokit;
 
   constructor(token: string) {
