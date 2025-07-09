@@ -3,9 +3,6 @@ name: "CI Lighthouse Gist"
 on:
   schedule:
     - cron: "0 7 * * *"
-  push:
-    branches:
-      - main
 
 jobs:
   perf:
@@ -26,7 +23,7 @@ jobs:
         run: npm install -g @lhci/cli
 
       - name: Run Lighthouse CI
-        run: npm run lhci
+        run: npm run lhci:all
 
       - name: Upload Gist
         env:

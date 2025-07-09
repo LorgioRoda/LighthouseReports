@@ -25,4 +25,6 @@ dist-ssr
 *.sln
 *.sw?
 .npmrc
+.lighthouse-reports
+.lighthouseci
 
