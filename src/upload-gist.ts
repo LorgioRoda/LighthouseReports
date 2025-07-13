@@ -243,6 +243,7 @@ function getGitHubToken(dryRun: boolean = false): string {
   }
 
   const token = process.env.GH_TOKEN || process.env.GITHUB_TOKEN;
+
   
   if (!token) {
     console.error("❌ You need to define GH_TOKEN or use GITHUB_TOKEN from Actions");
@@ -305,7 +306,10 @@ async function main(): Promise<void> {
   }
 }
 
-main().catch(err => {
-  console.error("❌ Unexpected error:", err);
-  process.exit(1);
-});
+
+if (require.main === module) {
+  main().catch(err => {
+    console.error("❌ Unexpected error:", err);
+    process.exit(1);
+  });
+}

@@ -1,27 +1,49 @@
+process.env.GH_TOKEN = 'dummy_token_for_dry_run';
 import { LighthouseGistUploader } from '../../src/upload-gist';
 import fs from 'fs';
-import { Octokit } from '@octokit/rest';
+
 
 jest.mock('fs');
-jest.mock('@octokit/rest');
+jest.mock('@octokit/rest', () => {
+  const mockOctokit = { gists: { create: jest.fn() } };
+  return { Octokit: jest.fn(() => mockOctokit) };
+});
 
+const fakeRuns = [{
+  url: 'http://example1.com',
+  isRepresentativeRun: true,
+  htmlPath: 'a.html',
+  jsonPath: 'a.json',
+  type: 'desktop',
+  path: './.lighthouse-reports/desktop/manifest.json',
+  summary: { performance: 0.42, accessibility: 0, 'best-practices': 0, seo: 0, pwa: 0 },
+}, {
+  url: 'http://example.com',
+  isRepresentativeRun: true,
+  htmlPath: 'a.html',
+  jsonPath: 'a.json',
+  type: 'mobile',
+  path: './.lighthouse-reports/mobile/manifest.json',
+  summary: { performance: 0.42, accessibility: 0, 'best-practices': 0, seo: 0, pwa: 0 }
+}];
 
 describe("readAllManifests", () => {
-    const fakeRuns = [{
-        url: 'http://example.com',
-        isRepresentativeRun: true,
-        htmlPath: 'a.html',
-        jsonPath: 'a.json',
-        summary: { performance: 0.42, accessibility:0, "best-practices":0, seo:0, pwa:0 }
-      }];
-    beforeEach(() => {
-        (fs.readFileSync as jest.Mock).mockImplementationOnce(() => JSON.stringify(fakeRuns));
-    });
+  beforeEach(() => { 
+    (fs.readFileSync as jest.Mock).mockImplementation(() => JSON.stringify(fakeRuns))
+    
+  });
+
+  afterEach(() => {
+    delete process.env.GH_TOKEN;
+    jest.clearAllMocks();
+  });
     
     it("should read all manifests", () => {
       const uploader = new LighthouseGistUploader('token');
-      console.log(uploader);
-      
-    // expect(manifests).toBeDefined();
+      const source = (uploader as any).readAllManifests();
+      expect(fs.readFileSync).toHaveBeenCalledWith(
+        './.lighthouse-reports/manifest.json', 'utf-8'
+      );
+      expect(fs.readFileSync).toHaveBeenCalledTimes(3);
   });
 });
