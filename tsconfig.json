@@ -5,9 +5,9 @@
       "moduleResolution": "node",
       "esModuleInterop": true,
       "outDir": "dist",
-      "rootDir": "src",
+      "rootDir": ".",
       "strict": true
     },
-    "include": ["src"]
+    "include": ["src", "tests"]
   }
   
