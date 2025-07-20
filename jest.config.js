@@ -4,14 +4,32 @@ const tsJestTransformCfg = createDefaultPreset().transform;
 
 /** @type {import("jest").Config} **/
 export default {
+  preset: "ts-jest/presets/js-with-ts-esm",
   testEnvironment: "node",
-  extensionsToTreatAsEsm: ['.ts'],
+  extensionsToTreatAsEsm: [".ts"],
+  
   transform: {
-    ...tsJestTransformCfg,
+    "^.+\\.tsx?$": ["ts-jest", {
+      useESM: true,
+      tsconfig: {
+        module: "ES2020",
+        target: "ES2020",
+        moduleResolution: "node",
+        isolatedModules: true,
+        allowImportingTsExtensions: true
+      }
+    }]
   },
-  rootDir: ".",
-  testMatch: ["<rootDir>/tests/**/*.test.ts"],
+
   moduleNameMapper: {
     "^@/(.*)$": "<rootDir>/src/$1",
+    "^(\\.{1,2}/.*)\\.js$": "$1"
   },
+
+  transformIgnorePatterns: [
+    "node_modules/(?!(.*\\.mjs$))"
+  ],
+
+  rootDir: ".",
+  testMatch: ["<rootDir>/tests/**/*.test.ts"]
 };

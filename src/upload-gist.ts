@@ -2,6 +2,8 @@ import { Octokit } from "@octokit/rest";
 import * as fs from "fs";
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
+import { fileURLToPath } from "node:url";
+import { basename } from "node:path";
 
 interface ManifestRun {
   url: string;
@@ -18,7 +20,7 @@ interface ManifestRun {
 }
 
 interface ManifestSource {
-  type: 'main' | 'mobile' | 'desktop';
+  type: "main" | "mobile" | "desktop";
   path: string;
   runs: ManifestRun[];
 }
@@ -44,48 +46,55 @@ export class LighthouseGistUploader {
     this.octokit = new Octokit({ auth: token });
   }
 
-  /**
-   * Read all manifest files from different sources
-   */
+  /** Read all manifest files from different sources */
   private readAllManifests(): ManifestSource[] {
     const sources: ManifestSource[] = [];
-    
+
     // Try to read main manifest
     try {
-      const mainContent = fs.readFileSync("./.lighthouse-reports/manifest.json", "utf-8");
+      const mainContent = fs.readFileSync(
+        "./.lighthouse-reports/manifest.json",
+        "utf-8"
+      );
       sources.push({
-        type: 'main',
-        path: './.lighthouse-reports/manifest.json',
-        runs: JSON.parse(mainContent)
+        type: "main",
+        path: "./.lighthouse-reports/manifest.json",
+        runs: JSON.parse(mainContent),
       });
       console.log("📋 Main manifest loaded");
-    } catch (err) {
+    } catch {
       console.log("⚠️  Main manifest not found");
     }
-    
+
     // Try to read mobile manifest
     try {
-      const mobileContent = fs.readFileSync("./.lighthouse-reports/mobile/manifest.json", "utf-8");
+      const mobileContent = fs.readFileSync(
+        "./.lighthouse-reports/mobile/manifest.json",
+        "utf-8"
+      );
       sources.push({
-        type: 'mobile',
-        path: './.lighthouse-reports/mobile/manifest.json',
-        runs: JSON.parse(mobileContent)
+        type: "mobile",
+        path: "./.lighthouse-reports/mobile/manifest.json",
+        runs: JSON.parse(mobileContent),
       });
       console.log("📱 Mobile manifest loaded");
-    } catch (err) {
+    } catch {
       console.log("⚠️  Mobile manifest not found");
     }
-    
+
     // Try to read desktop manifest
     try {
-      const desktopContent = fs.readFileSync("./.lighthouse-reports/desktop/manifest.json", "utf-8");
+      const desktopContent = fs.readFileSync(
+        "./.lighthouse-reports/desktop/manifest.json",
+        "utf-8"
+      );
       sources.push({
-        type: 'desktop',
-        path: './.lighthouse-reports/desktop/manifest.json',
-        runs: JSON.parse(desktopContent)
+        type: "desktop",
+        path: "./.lighthouse-reports/desktop/manifest.json",
+        runs: JSON.parse(desktopContent),
       });
       console.log("🖥️  Desktop manifest loaded");
-    } catch (err) {
+    } catch {
       console.log("⚠️  Desktop manifest not found");
     }
 
@@ -97,24 +106,30 @@ export class LighthouseGistUploader {
     return sources;
   }
 
-  /**
-   * Find all representative runs from all manifests
-   */
+  /** Find all representative runs from all manifests */
   private findAllRepresentativeRuns(): Array<{ run: ManifestRun; type: string }> {
     const manifests = this.readAllManifests();
     const representativeRuns: Array<{ run: ManifestRun; type: string }> = [];
-    
+
     for (const manifest of manifests) {
-      const representativeRun = manifest.runs.find(run => run.isRepresentativeRun);
-      
+      const representativeRun = manifest.runs.find(
+        (run) => run.isRepresentativeRun
+      );
+
       if (representativeRun) {
         representativeRuns.push({
           run: representativeRun,
-          type: manifest.type
+          type: manifest.type,
         });
-        console.log(`✅ Found representative run for ${manifest.type}: Performance ${Math.round(representativeRun.summary.performance * 100)}%`);
+        console.log(
+          `✅ Found representative run for ${manifest.type}: Performance ${Math.round(
+            representativeRun.summary.performance * 100
+          )}%`
+        );
       } else {
-        console.log(`⚠️  No representative run found in ${manifest.type} manifest`);
+        console.log(
+          `⚠️  No representative run found in ${manifest.type} manifest`
+        );
       }
     }
 
@@ -126,9 +141,7 @@ export class LighthouseGistUploader {
     return representativeRuns;
   }
 
-  /**
-   * Read lighthouse report file
-   */
+  /** Read lighthouse report file */
   private readReportFile(reportPath: string): string {
     try {
       return fs.readFileSync(reportPath, "utf-8");
@@ -138,32 +151,40 @@ export class LighthouseGistUploader {
     }
   }
 
-  /**
-   * Create a gist with a descriptive name
-   */
-  private async createGist(filename: string, content: string, type: string, performance: number, dryRun: boolean = false): Promise<GistResult> {
+  /** Create a gist with a descriptive name */
+  private async createGist(
+    filename: string,
+    content: string,
+    type: string,
+    performance: number,
+    dryRun: boolean = false
+  ): Promise<GistResult> {
     try {
-      const description = `Lighthouse Report - ${type.toUpperCase()} (${Math.round(performance * 100)}% performance)`;
-      
+      const description = `Lighthouse Report - ${type.toUpperCase()} (${Math.round(
+        performance * 100
+      )}% performance)`;
+
       if (dryRun) {
         const dummyGistId = `dummy-${type}-${Date.now()}`;
-        console.log(`🧪 DRY RUN: Would create gist with description: "${description}"`);
+        console.log(
+          `🧪 DRY RUN: Would create gist with description: "${description}"`
+        );
         console.log(`📁 Filename: ${filename}`);
         console.log(`💾 Content size: ${content.length} characters`);
-        
+
         return {
           type,
           gistId: dummyGistId,
           viewerUrl: `https://googlechrome.github.io/lighthouse/viewer/?gist=${dummyGistId}`,
           filename,
-          performance: performance * 100
+          performance: performance * 100,
         };
       }
 
       const response = await this.octokit.gists.create({
         files: { [filename]: { content } },
         public: false,
-        description
+        description,
       });
 
       const gistId = response.data.id;
@@ -171,10 +192,10 @@ export class LighthouseGistUploader {
 
       return {
         type,
-        gistId: gistId ?? '',
+        gistId: gistId ?? "",
         viewerUrl,
         filename,
-        performance: performance * 100
+        performance: performance * 100,
       };
     } catch (err) {
       console.error(`❌ Error creating gist for ${type}:`, err);
@@ -182,47 +203,57 @@ export class LighthouseGistUploader {
     }
   }
 
-  /**
-   * Upload all representative runs
-   */
+  /** Upload all representative runs */
   async uploadAll(dryRun: boolean = false): Promise<GistResult[]> {
     const representativeRuns = this.findAllRepresentativeRuns();
     const results: GistResult[] = [];
-    
-    console.log(`\n🚀 ${dryRun ? 'DRY RUN - ' : ''}Uploading ${representativeRuns.length} representative runs...`);
-    
+
+    console.log(
+      `\n🚀 ${dryRun ? "DRY RUN - " : ""}Uploading ${
+        representativeRuns.length
+      } representative runs...`
+    );
+
     for (const { run, type } of representativeRuns) {
       console.log(`\n📤 Processing ${type} report...`);
-      
+
       try {
         const content = this.readReportFile(run.jsonPath);
-        const filename = run.jsonPath.split("/").pop() || `lighthouse-${type}.json`;
-        
-        const result = await this.createGist(filename, content, type, run.summary.performance, dryRun);
+        const filename =
+          run.jsonPath.split("/").pop() || `lighthouse-${type}.json`;
+
+        const result = await this.createGist(
+          filename,
+          content,
+          type,
+          run.summary.performance,
+          dryRun
+        );
         results.push(result);
-        
+
         if (dryRun) {
           console.log(`🧪 ${type.toUpperCase()} gist simulation completed`);
         } else {
           console.log(`✅ ${type.toUpperCase()} gist created: ${result.gistId}`);
           console.log(`🔗 Viewer: ${result.viewerUrl}`);
         }
-        
       } catch (err) {
         console.error(`❌ Failed to upload ${type} report:`, err);
       }
     }
-    
+
     return results;
   }
 
-  /**
-   * Display summary of all created gists
-   */
+  /** Display summary of all created gists */
   displaySummary(results: GistResult[], dryRun: boolean = false): void {
-    console.log(`\n📊 SUMMARY - ${results.length} ${dryRun ? 'Simulated ' : ''}Gists ${dryRun ? 'Would Be ' : ''}Created:`);
+    console.log(
+      `\n📊 SUMMARY - ${results.length} ${
+        dryRun ? "Simulated " : ""
+      }Gists ${dryRun ? "Would Be " : ""}Created:`
+    );
     console.log("━".repeat(80));
-    
+
     results.forEach((result, index) => {
       console.log(`${index + 1}. ${result.type.toUpperCase()}`);
       console.log(`   📈 Performance: ${Math.round(result.performance)}%`);
@@ -230,9 +261,9 @@ export class LighthouseGistUploader {
       console.log(`   🔗 Viewer: ${result.viewerUrl}`);
       console.log("");
     });
-    
-    // Total average
-    const avgPerformance = results.reduce((sum, r) => sum + r.performance, 0) / results.length;
+
+    const avgPerformance =
+      results.reduce((sum, r) => sum + r.performance, 0) / results.length;
     console.log(`📊 Average Performance: ${Math.round(avgPerformance)}%`);
   }
 }
@@ -244,9 +275,10 @@ function getGitHubToken(dryRun: boolean = false): string {
 
   const token = process.env.GH_TOKEN || process.env.GITHUB_TOKEN;
 
-  
   if (!token) {
-    console.error("❌ You need to define GH_TOKEN or use GITHUB_TOKEN from Actions");
+    console.error(
+      "❌ You need to define GH_TOKEN or use GITHUB_TOKEN from Actions"
+    );
     process.exit(1);
   }
 
@@ -259,17 +291,17 @@ function parseArguments(): CliArgs {
     .option("file", {
       alias: "f",
       type: "string",
-      describe: "Path to a specific Lighthouse JSON report (optional)"
+      describe: "Path to a specific Lighthouse JSON report (optional)",
     })
     .option("gist", {
       alias: "g",
       type: "string",
-      describe: "Gist ID to update (for single file mode only)"
+      describe: "Gist ID to update (for single file mode only)",
     })
     .option("dry-run", {
       alias: "d",
       type: "boolean",
-      describe: "Test mode - don't upload to GitHub, just simulate"
+      describe: "Test mode - don't upload to GitHub, just simulate",
     })
     .help()
     .parseSync();
@@ -278,7 +310,7 @@ function parseArguments(): CliArgs {
 async function main(): Promise<void> {
   console.log("🚀 Lighthouse Gist Uploader - Multiple Reports Mode");
   console.log("━".repeat(50));
-  
+
   const args = parseArguments();
   const dryRun = args.dryRun || false;
   const token = getGitHubToken(dryRun);
@@ -289,26 +321,32 @@ async function main(): Promise<void> {
     console.log("━".repeat(50));
   }
 
-  // Multiple files mode
   try {
     const results = await uploader.uploadAll(dryRun);
     uploader.displaySummary(results, dryRun);
-    
+
     if (dryRun) {
-      console.log("🧪 Dry run completed successfully! Use without --dry-run to actually upload.");
+      console.log(
+        "🧪 Dry run completed successfully! Use without --dry-run to actually upload."
+      );
     } else {
       console.log("✅ All uploads completed successfully!");
     }
-    
   } catch (err) {
     console.error("❌ Upload process failed:", err);
     process.exit(1);
   }
 }
 
+const isDirectRun = (() => {
+  if (typeof process !== 'undefined' && (process.env.NODE_ENV === 'test' || process.env.JEST_WORKER_ID)) {
+    return false;
+  }
+  return process.argv.length > 1 && process.argv.some(arg => arg.includes('upload-gist'));
+})();
 
-if (require.main === module) {
-  main().catch(err => {
+if (isDirectRun) {
+  main().catch((err) => {
     console.error("❌ Unexpected error:", err);
     process.exit(1);
   });
