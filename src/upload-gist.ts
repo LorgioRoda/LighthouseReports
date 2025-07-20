@@ -338,8 +338,12 @@ async function main(): Promise<void> {
   }
 }
 
-const isDirectRun =
-  basename(fileURLToPath(import.meta.url)) === basename(process.argv[1]);
+const isDirectRun = (() => {
+  if (typeof process !== 'undefined' && (process.env.NODE_ENV === 'test' || process.env.JEST_WORKER_ID)) {
+    return false;
+  }
+  return process.argv.length > 1 && process.argv.some(arg => arg.includes('upload-gist'));
+})();
 
 if (isDirectRun) {
   main().catch((err) => {
