@@ -15,22 +15,6 @@ This repository automates web performance testing using Google Lighthouse CI and
 
 Currently configured to test **Cupra Official websites** (Danish and Finnish markets), but easily configurable for any website.
 
-## 🏗️ Architecture
-
-The project follows clean architecture principles with:
-
-```
-src/
-├── upload-gist.ts          # Main application logic and CLI entry point
-├── domain/                 # Business logic and entities  
-├── application/            # Use cases and application services
-└── infrastructure/         # External services and data access
-
-tests/
-├── application/            # Application layer tests
-├── domain/                 # Domain layer tests  
-└── infrastructure/         # Infrastructure layer tests
-```
 
 ## 🚦 Getting Started
 
