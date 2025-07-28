@@ -4,6 +4,7 @@ import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 import { fileURLToPath } from "node:url";
 import { basename } from "node:path";
+import { GetToken } from "./get-token";
 
 interface ManifestRun {
   url: string;
@@ -268,23 +269,6 @@ export class LighthouseGistUploader {
   }
 }
 
-function getGitHubToken(dryRun: boolean = false): string {
-  if (dryRun) {
-    return "dummy_token_for_dry_run";
-  }
-
-  const token = process.env.GH_TOKEN || process.env.GITHUB_TOKEN;
-
-  if (!token) {
-    console.error(
-      "❌ You need to define GH_TOKEN or use GITHUB_TOKEN from Actions"
-    );
-    process.exit(1);
-  }
-
-  return token;
-}
-
 function parseArguments(): CliArgs {
   return yargs(hideBin(process.argv))
     .usage("Usage: $0 [options]")
@@ -313,7 +297,7 @@ async function main(): Promise<void> {
 
   const args = parseArguments();
   const dryRun = args.dryRun || false;
-  const token = getGitHubToken(dryRun);
+  const token = GetToken.getToken(dryRun);
   const uploader = new LighthouseGistUploader(token);
 
   if (dryRun) {
