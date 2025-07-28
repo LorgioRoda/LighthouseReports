@@ -4,7 +4,7 @@ import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 import { fileURLToPath } from "node:url";
 import { basename } from "node:path";
-import { GetToken } from "./get-token";
+import { GetToken } from "./get-token.ts";
 import { HandleManifest } from "./core/reports/application/handle-manifest";
 
 interface ManifestRun {
