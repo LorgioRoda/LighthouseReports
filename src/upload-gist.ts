@@ -242,7 +242,7 @@ async function main(): Promise<void> {
 
   const args = parseArguments();
   const dryRun = args.dryRun || false;
-  const token = GetToken.getToken(dryRun);
+  const token = GetToken.getToken();
   const uploader = new LighthouseGistUploader(token);
 
   if (dryRun) {
