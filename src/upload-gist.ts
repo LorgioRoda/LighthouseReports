@@ -5,6 +5,7 @@ import { hideBin } from "yargs/helpers";
 import { fileURLToPath } from "node:url";
 import { basename } from "node:path";
 import { GetToken } from "./get-token";
+import { HandleManifest } from "./core/reports/application/handle-manifest";
 
 interface ManifestRun {
   url: string;
@@ -48,68 +49,10 @@ export class LighthouseGistUploader {
   }
 
   /** Read all manifest files from different sources */
-  private readAllManifests(): ManifestSource[] {
-    const sources: ManifestSource[] = [];
-
-    // Try to read main manifest
-    try {
-      const mainContent = fs.readFileSync(
-        "./.lighthouse-reports/manifest.json",
-        "utf-8"
-      );
-      sources.push({
-        type: "main",
-        path: "./.lighthouse-reports/manifest.json",
-        runs: JSON.parse(mainContent),
-      });
-      console.log("📋 Main manifest loaded");
-    } catch {
-      console.log("⚠️  Main manifest not found");
-    }
-
-    // Try to read mobile manifest
-    try {
-      const mobileContent = fs.readFileSync(
-        "./.lighthouse-reports/mobile/manifest.json",
-        "utf-8"
-      );
-      sources.push({
-        type: "mobile",
-        path: "./.lighthouse-reports/mobile/manifest.json",
-        runs: JSON.parse(mobileContent),
-      });
-      console.log("📱 Mobile manifest loaded");
-    } catch {
-      console.log("⚠️  Mobile manifest not found");
-    }
-
-    // Try to read desktop manifest
-    try {
-      const desktopContent = fs.readFileSync(
-        "./.lighthouse-reports/desktop/manifest.json",
-        "utf-8"
-      );
-      sources.push({
-        type: "desktop",
-        path: "./.lighthouse-reports/desktop/manifest.json",
-        runs: JSON.parse(desktopContent),
-      });
-      console.log("🖥️  Desktop manifest loaded");
-    } catch {
-      console.log("⚠️  Desktop manifest not found");
-    }
-
-    if (sources.length === 0) {
-      console.error("❌ No manifest files found");
-      process.exit(1);
-    }
-
-    return sources;
-  }
 
   /** Find all representative runs from all manifests */
   private findAllRepresentativeRuns(): Array<{ run: ManifestRun; type: string }> {
-    const manifests = this.readAllManifests();
+    const manifests = new HandleManifest().readAllManifests();
     const representativeRuns: Array<{ run: ManifestRun; type: string }> = [];
 
     for (const manifest of manifests) {

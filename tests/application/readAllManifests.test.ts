@@ -1,4 +1,5 @@
 process.env.GH_TOKEN = 'dummy_token_for_dry_run';
+import { HandleManifest } from '../../src/core/reports/application/handle-manifest.js';
 import { LighthouseGistUploader } from '../../src/upload-gist.js';
 import fs from 'fs';
 
@@ -38,8 +39,7 @@ describe("readAllManifests", () => {
   });
     
   it("should read all manifests, mobile, desktop, and main", () => {
-    const uploader = new LighthouseGistUploader('token');
-    const source = (uploader as any).readAllManifests();
+    const source = new HandleManifest().readAllManifests();
     expect(fs.readFileSync).toHaveBeenCalledWith(
         './.lighthouse-reports/manifest.json', 'utf-8'
       );
@@ -49,31 +49,28 @@ describe("readAllManifests", () => {
   });
 
   it("should find main source", () => {
-    const uploader = new LighthouseGistUploader('token');
-    const source = (uploader as any).readAllManifests();
+    const source = new HandleManifest().readAllManifests();
     expect(fs.readFileSync).toHaveBeenCalledWith(
       './.lighthouse-reports/manifest.json', 'utf-8'
     );
     expect(source[0].type).toBe('main');
   });
 
-  it("should find mobile source in main manifest", () => {
-    const uploader = new LighthouseGistUploader('token');
-    const source = (uploader as any).readAllManifests();
+  it("should find mobile source", () => {
+    const source = new HandleManifest().readAllManifests();
     expect(fs.readFileSync).toHaveBeenCalledWith(
       './.lighthouse-reports/manifest.json', 'utf-8'
     );
-    expect(source[0].runs[1].type).toBe('mobile');
-    expect(source[0].runs[1].path).toBe('./.lighthouse-reports/mobile/manifest.json');
+    expect(source[1].type).toBe('mobile');
+    expect(source[1].path).toBe('./.lighthouse-reports/mobile/manifest.json');
   });
 
   it("should find desktop source in main manifest", () => {
-    const uploader = new LighthouseGistUploader('token');
-    const source = (uploader as any).readAllManifests();
+    const source = new HandleManifest().readAllManifests();
     expect(fs.readFileSync).toHaveBeenCalledWith(
       './.lighthouse-reports/manifest.json', 'utf-8'
     );
-    expect(source[0].runs[0].type).toBe('desktop');
-    expect(source[0].runs[0].path).toBe('./.lighthouse-reports/desktop/manifest.json');
+    expect(source[2].type).toBe('desktop');
+    expect(source[2].path).toBe('./.lighthouse-reports/desktop/manifest.json');
   });
 });
