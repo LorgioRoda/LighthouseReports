@@ -53,6 +53,8 @@ export class LighthouseGistUploader {
   /** Find all representative runs from all manifests */
   private findAllRepresentativeRuns(): Array<{ run: ManifestRun; type: string }> {
     const manifests = new HandleManifest().readAllManifests();
+    console.log(manifests, 'manifests');
+    
     const representativeRuns: Array<{ run: ManifestRun; type: string }> = [];
 
     for (const manifest of manifests) {
