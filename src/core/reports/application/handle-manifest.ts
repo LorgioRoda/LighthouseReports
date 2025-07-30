@@ -1,8 +1,13 @@
 import * as fs from "fs";
 
+
+type ManifestType = "main" | "mobile" | "desktop";
+
+type ReportPath = "./.lighthouse-reports/manifest.json" | `./.lighthouse-reports/${ManifestType}/manifest.json`;
+
 interface ManifestSource {
-    type: "main" | "mobile" | "desktop";
-    path: string;
+    type: ManifestType;
+    path: ReportPath;
     runs: ManifestRun[];
   }
 
@@ -26,39 +31,28 @@ export class HandleManifest {
     public readAllManifests(): ManifestSource[] {
         const sources: ManifestSource[] = [];
     
-        // Try to read main manifest
         try {
-          const mainContent = fs.readFileSync(
-            "./.lighthouse-reports/manifest.json",
-            "utf-8"
-          );
           sources.push({
             type: "main",
             path: "./.lighthouse-reports/manifest.json",
-            runs: JSON.parse(mainContent),
+            runs: this.getMainManifest(),
           });
           console.log("📋 Main manifest loaded");
         } catch {
           console.log("⚠️  Main manifest not found");
         }
     
-        // Try to read mobile manifest
         try {
-          const mobileContent = fs.readFileSync(
-            "./.lighthouse-reports/mobile/manifest.json",
-            "utf-8"
-          );
           sources.push({
             type: "mobile",
             path: "./.lighthouse-reports/mobile/manifest.json",
-            runs: JSON.parse(mobileContent),
+            runs: this.getMobileManifest(),
           });
           console.log("📱 Mobile manifest loaded");
         } catch {
           console.log("⚠️  Mobile manifest not found");
         }
     
-        // Try to read desktop manifest
         try {
           sources.push({
             type: "desktop",
@@ -83,5 +77,20 @@ export class HandleManifest {
             "utf-8"
           );
           return JSON.parse(desktopContent);
+    }
+    private getMobileManifest(): ManifestRun[] {
+        const mobileContent = fs.readFileSync(
+            "./.lighthouse-reports/mobile/manifest.json",
+            "utf-8"
+          );
+          return JSON.parse(mobileContent);
+    }
+
+    private getMainManifest(): ManifestRun[] {
+        const mainContent = fs.readFileSync(
+            "./.lighthouse-reports/manifest.json",
+            "utf-8"
+          );
+          return JSON.parse(mainContent);
     }
 }
