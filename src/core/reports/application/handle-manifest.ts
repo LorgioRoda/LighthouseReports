@@ -60,14 +60,10 @@ export class HandleManifest {
     
         // Try to read desktop manifest
         try {
-          const desktopContent = fs.readFileSync(
-            "./.lighthouse-reports/desktop/manifest.json",
-            "utf-8"
-          );
           sources.push({
             type: "desktop",
             path: "./.lighthouse-reports/desktop/manifest.json",
-            runs: JSON.parse(desktopContent),
+            runs: this.getDesktopManifest(),
           });
           console.log("🖥️  Desktop manifest loaded");
         } catch {
@@ -81,4 +77,11 @@ export class HandleManifest {
     
         return sources;
       }
+    private getDesktopManifest(): ManifestRun[] {
+        const desktopContent = fs.readFileSync(
+            "./.lighthouse-reports/desktop/manifest.json",
+            "utf-8"
+          );
+          return JSON.parse(desktopContent);
+    }
 }
