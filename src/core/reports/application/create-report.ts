@@ -1,9 +1,9 @@
 import { Report } from "../domain/report.ts";
 import { CreateReportGits } from "../../../infrastructure/create-report-gits.ts";
+import { ReportRepository } from "../domain/report-repository.ts";
 
 export class CreateReport {
-    constructor(private readonly createReportGits: CreateReportGits) {
-      this.createReportGits = createReportGits;
+    constructor(private readonly reportRepository: ReportRepository) {
     }
 
     public async execute(
@@ -15,7 +15,7 @@ export class CreateReport {
         try {
           const description = this.getDescription(type, performance);
     
-          const report = await this.createReportGits.execute({
+          const report = await this.reportRepository.createReport({
             filename,
             content,
             description,

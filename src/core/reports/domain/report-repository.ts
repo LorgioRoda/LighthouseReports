@@ -1,7 +1,7 @@
 import { Report } from "./report.ts";
 
 export interface ReportRepository {
-  execute(params: {
+  createReport(params: {
     filename: string;
     content: string;
     description: string;

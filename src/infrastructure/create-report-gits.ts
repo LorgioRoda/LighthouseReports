@@ -8,7 +8,7 @@ export class CreateReportGits implements ReportRepository {
         this.octokit = octokit;
     }
 
-    public async execute(params: {
+    public async createReport(params: {
         filename: string;
         content: string;
         description: string;
