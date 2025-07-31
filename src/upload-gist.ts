@@ -5,7 +5,7 @@ import { hideBin } from "yargs/helpers";
 import { GetToken } from "./get-token.ts";
 import { HandleManifest } from "./core/reports/application/handle-manifest.ts";
 import { CreateReport } from "./core/reports/application/create-report.ts";
-
+import { Report } from "./core/reports/domain/report.ts";
 
 interface ManifestRun {
   url: string;
@@ -27,16 +27,7 @@ interface CliArgs {
   dryRun?: boolean;
 }
 
-interface GistResult {
-  type: string;
-  gistId: string;
-  viewerUrl: string;
-  filename: string;
-  performance: number;
-}
-
 export class LighthouseGistUploader {
-
 
   /** Read lighthouse report file */
   private readReportFile(reportPath: string): string {
@@ -49,9 +40,9 @@ export class LighthouseGistUploader {
   }
 
   /** Upload all representative runs */
-  async uploadAll(dryRun: boolean = false): Promise<GistResult[]> {
+  async uploadAll(dryRun: boolean = false): Promise<Report[]> {
     const representativeRuns = new HandleManifest().findAllRepresentativeRuns();
-    const results: GistResult[] = [];
+    const results: Report[] = [];
 
     console.log(
       `\n🚀 ${dryRun ? "DRY RUN - " : ""}Uploading ${
@@ -67,7 +58,7 @@ export class LighthouseGistUploader {
         const filename =
           run.jsonPath.split("/").pop() || `lighthouse-${type}.json`;
 
-        const result = await new CreateReport(GetToken.getToken()).createGist(
+        const result = await new CreateReport(GetToken.getToken()).execute(
           filename,
           content,
           type,
@@ -79,7 +70,7 @@ export class LighthouseGistUploader {
         if (dryRun) {
           console.log(`🧪 ${type.toUpperCase()} gist simulation completed`);
         } else {
-          console.log(`✅ ${type.toUpperCase()} gist created: ${result.gistId}`);
+          console.log(`✅ ${type.toUpperCase()} gist created: ${result.id}`);
           console.log(`🔗 Viewer: ${result.viewerUrl}`);
         }
       } catch (err) {
@@ -91,18 +82,12 @@ export class LighthouseGistUploader {
   }
 
   /** Display summary of all created gists */
-  displaySummary(results: GistResult[], dryRun: boolean = false): void {
-    console.log(
-      `\n📊 SUMMARY - ${results.length} ${
-        dryRun ? "Simulated " : ""
-      }Gists ${dryRun ? "Would Be " : ""}Created:`
-    );
-    console.log("━".repeat(80));
+  displaySummary(results: Report[], dryRun: boolean = false): void {
 
     results.forEach((result, index) => {
       console.log(`${index + 1}. ${result.type.toUpperCase()}`);
       console.log(`   📈 Performance: ${Math.round(result.performance)}%`);
-      console.log(`   🆔 Gist ID: ${result.gistId}`);
+      console.log(`   🆔 Gist ID: ${result.id}`);
       console.log(`   🔗 Viewer: ${result.viewerUrl}`);
       console.log("");
     });

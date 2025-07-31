@@ -1,12 +1,6 @@
 import { Octokit } from "@octokit/rest";
+import { Report } from "../domain/report.ts";
 
-interface GistResult {
-    type: string;
-    gistId: string;
-    viewerUrl: string;
-    filename: string;
-    performance: number;
-  }
 
 export class CreateReport {
     private octokit: Octokit;
@@ -15,20 +9,20 @@ export class CreateReport {
       this.octokit = new Octokit({ auth: token });
     }
 
-    public async createGist(
+    public async execute(
         filename: string,
         content: string,
         type: string,
         performance: number,
         dryRun: boolean = false
-      ): Promise<GistResult> {
+      ): Promise<Report> {
         try {
           const description = `Lighthouse Report - ${type.toUpperCase()} (${Math.round(
             performance * 100
           )}% performance)`;
     
           if (dryRun) {
-            const dummyGistId = `dummy-${type}-${Date.now()}`;
+            const id = `dummy-${type}-${Date.now()}`;
             console.log(
               `🧪 DRY RUN: Would create gist with description: "${description}"`
             );
@@ -37,8 +31,8 @@ export class CreateReport {
     
             return {
               type,
-              gistId: dummyGistId,
-              viewerUrl: `https://googlechrome.github.io/lighthouse/viewer/?gist=${dummyGistId}`,
+              id,
+              viewerUrl: `https://googlechrome.github.io/lighthouse/viewer/?gist=${id}`,
               filename,
               performance: performance * 100,
             };
@@ -50,12 +44,12 @@ export class CreateReport {
             description,
           });
     
-          const gistId = response.data.id;
-          const viewerUrl = `https://googlechrome.github.io/lighthouse/viewer/?gist=${gistId}`;
+          const id = response.data.id;
+          const viewerUrl = `https://googlechrome.github.io/lighthouse/viewer/?gist=${id}`;
     
           return {
             type,
-            gistId: gistId ?? "",
+            id: id ?? "",
             viewerUrl,
             filename,
             performance: performance * 100,
