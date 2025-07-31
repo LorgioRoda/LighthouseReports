@@ -2,10 +2,9 @@ import { Octokit } from "@octokit/rest";
 import * as fs from "fs";
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
-import { fileURLToPath } from "node:url";
-import { basename } from "node:path";
 import { GetToken } from "./get-token.ts";
 import { HandleManifest } from "./core/reports/application/handle-manifest.ts";
+import { CreateReport } from "./core/reports/application/create-report.ts";
 
 
 interface ManifestRun {
@@ -20,12 +19,6 @@ interface ManifestRun {
     seo: number;
     pwa: number;
   };
-}
-
-interface ManifestSource {
-  type: "main" | "mobile" | "desktop";
-  path: string;
-  runs: ManifestRun[];
 }
 
 interface CliArgs {
@@ -43,11 +36,6 @@ interface GistResult {
 }
 
 export class LighthouseGistUploader {
-  private octokit: Octokit;
-
-  constructor(token: string) {
-    this.octokit = new Octokit({ auth: token });
-  }
 
 
   /** Read lighthouse report file */
@@ -56,58 +44,6 @@ export class LighthouseGistUploader {
       return fs.readFileSync(reportPath, "utf-8");
     } catch (err) {
       console.error(`❌ Unable to read report file ${reportPath}:`, err);
-      throw err;
-    }
-  }
-
-  /** Create a gist with a descriptive name */
-  private async createGist(
-    filename: string,
-    content: string,
-    type: string,
-    performance: number,
-    dryRun: boolean = false
-  ): Promise<GistResult> {
-    try {
-      const description = `Lighthouse Report - ${type.toUpperCase()} (${Math.round(
-        performance * 100
-      )}% performance)`;
-
-      if (dryRun) {
-        const dummyGistId = `dummy-${type}-${Date.now()}`;
-        console.log(
-          `🧪 DRY RUN: Would create gist with description: "${description}"`
-        );
-        console.log(`📁 Filename: ${filename}`);
-        console.log(`💾 Content size: ${content.length} characters`);
-
-        return {
-          type,
-          gistId: dummyGistId,
-          viewerUrl: `https://googlechrome.github.io/lighthouse/viewer/?gist=${dummyGistId}`,
-          filename,
-          performance: performance * 100,
-        };
-      }
-
-      const response = await this.octokit.gists.create({
-        files: { [filename]: { content } },
-        public: false,
-        description,
-      });
-
-      const gistId = response.data.id;
-      const viewerUrl = `https://googlechrome.github.io/lighthouse/viewer/?gist=${gistId}`;
-
-      return {
-        type,
-        gistId: gistId ?? "",
-        viewerUrl,
-        filename,
-        performance: performance * 100,
-      };
-    } catch (err) {
-      console.error(`❌ Error creating gist for ${type}:`, err);
       throw err;
     }
   }
@@ -131,7 +67,7 @@ export class LighthouseGistUploader {
         const filename =
           run.jsonPath.split("/").pop() || `lighthouse-${type}.json`;
 
-        const result = await this.createGist(
+        const result = await new CreateReport(GetToken.getToken()).createGist(
           filename,
           content,
           type,
@@ -205,8 +141,7 @@ async function main(): Promise<void> {
 
   const args = parseArguments();
   const dryRun = args.dryRun || false;
-  const token = GetToken.getToken();
-  const uploader = new LighthouseGistUploader(token);
+  const uploader = new LighthouseGistUploader();
 
   if (dryRun) {
     console.log("🧪 DRY RUN MODE - No actual uploads will be made");
