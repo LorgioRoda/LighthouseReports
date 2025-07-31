@@ -49,44 +49,6 @@ export class LighthouseGistUploader {
     this.octokit = new Octokit({ auth: token });
   }
 
-  /** Read all manifest files from different sources */
-
-  /** Find all representative runs from all manifests */
-  private findAllRepresentativeRuns(): Array<{ run: ManifestRun; type: string }> {
-    const manifests = new HandleManifest().readAllManifests();
-    console.log(manifests, 'manifests');
-    
-    const representativeRuns: Array<{ run: ManifestRun; type: string }> = [];
-
-    for (const manifest of manifests) {
-      const representativeRun = manifest.runs.find(
-        (run) => run.isRepresentativeRun
-      );
-
-      if (representativeRun) {
-        representativeRuns.push({
-          run: representativeRun,
-          type: manifest.type,
-        });
-        console.log(
-          `✅ Found representative run for ${manifest.type}: Performance ${Math.round(
-            representativeRun.summary.performance * 100
-          )}%`
-        );
-      } else {
-        console.log(
-          `⚠️  No representative run found in ${manifest.type} manifest`
-        );
-      }
-    }
-
-    if (representativeRuns.length === 0) {
-      console.error("❌ No representative runs found in any manifest");
-      process.exit(1);
-    }
-
-    return representativeRuns;
-  }
 
   /** Read lighthouse report file */
   private readReportFile(reportPath: string): string {
@@ -152,7 +114,7 @@ export class LighthouseGistUploader {
 
   /** Upload all representative runs */
   async uploadAll(dryRun: boolean = false): Promise<GistResult[]> {
-    const representativeRuns = this.findAllRepresentativeRuns();
+    const representativeRuns = new HandleManifest().findAllRepresentativeRuns();
     const results: GistResult[] = [];
 
     console.log(

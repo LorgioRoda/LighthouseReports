@@ -28,7 +28,43 @@ interface ManifestSource {
 export class HandleManifest {
     constructor() {
     }
-    public readAllManifests(): ManifestSource[] {
+    public findAllRepresentativeRuns(): Array<{ run: ManifestRun; type: string }> {
+        const manifests = this.readAllManifests();
+        
+        const representativeRuns: Array<{ run: ManifestRun; type: string }> = [];
+    
+        for (const manifest of manifests) {
+          const representativeRun = manifest.runs.find(
+            (run) => run.isRepresentativeRun
+          );
+    
+          if (representativeRun) {
+            representativeRuns.push({
+              run: representativeRun,
+              type: manifest.type,
+            });
+            console.log(
+              `✅ Found representative run for ${manifest.type}: Performance ${Math.round(
+                representativeRun.summary.performance * 100
+              )}%`
+            );
+          } else {
+            console.log(
+              `⚠️  No representative run found in ${manifest.type} manifest`
+            );
+          }
+        }
+    
+        if (representativeRuns.length === 0) {
+          console.error("❌ No representative runs found in any manifest");
+          process.exit(1);
+        }
+    
+        return representativeRuns;
+      }    
+
+
+    private readAllManifests(): ManifestSource[] {
         const sources: ManifestSource[] = [];
     
         try {
