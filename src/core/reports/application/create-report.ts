@@ -1,12 +1,9 @@
-import { Octokit } from "@octokit/rest";
 import { Report } from "../domain/report.ts";
-
+import { CreateReportGits } from "../../../infrastructure/create-report-gits.ts";
 
 export class CreateReport {
-    private octokit: Octokit;
-
-    constructor(token: string) {
-      this.octokit = new Octokit({ auth: token });
+    constructor(private readonly createReportGits: CreateReportGits) {
+      this.createReportGits = createReportGits;
     }
 
     public async execute(
@@ -14,49 +11,28 @@ export class CreateReport {
         content: string,
         type: string,
         performance: number,
-        dryRun: boolean = false
       ): Promise<Report> {
         try {
-          const description = `Lighthouse Report - ${type.toUpperCase()} (${Math.round(
-            performance * 100
-          )}% performance)`;
+          const description = this.getDescription(type, performance);
     
-          if (dryRun) {
-            const id = `dummy-${type}-${Date.now()}`;
-            console.log(
-              `🧪 DRY RUN: Would create gist with description: "${description}"`
-            );
-            console.log(`📁 Filename: ${filename}`);
-            console.log(`💾 Content size: ${content.length} characters`);
-    
-            return {
-              type,
-              id,
-              viewerUrl: `https://googlechrome.github.io/lighthouse/viewer/?gist=${id}`,
-              filename,
-              performance: performance * 100,
-            };
-          }
-    
-          const response = await this.octokit.gists.create({
-            files: { [filename]: { content } },
-            public: false,
-            description,
-          });
-    
-          const id = response.data.id;
-          const viewerUrl = `https://googlechrome.github.io/lighthouse/viewer/?gist=${id}`;
+          const report = await this.createReportGits.execute(filename, content, description, type, performance);
     
           return {
             type,
-            id: id ?? "",
-            viewerUrl,
-            filename,
-            performance: performance * 100,
+            id: report.id,
+            viewerUrl: report.viewerUrl,
+            filename: report.filename,
+            performance: report.performance,
           };
         } catch (err) {
-          console.error(`❌ Error creating gist for ${type}:`, err);
+          console.error(`❌ Error creating report for ${type}:`, err);
           throw err;
         }
       }
+    
+    private getDescription(type: string, performance: number): string {
+        return `Lighthouse Report - ${type.toUpperCase()} (${Math.round(
+            performance * 100
+          )}% performance)`;
+    }
 }

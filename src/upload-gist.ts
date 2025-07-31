@@ -6,20 +6,7 @@ import { GetToken } from "./get-token.ts";
 import { HandleManifest } from "./core/reports/application/handle-manifest.ts";
 import { CreateReport } from "./core/reports/application/create-report.ts";
 import { Report } from "./core/reports/domain/report.ts";
-
-interface ManifestRun {
-  url: string;
-  isRepresentativeRun: boolean;
-  htmlPath: string;
-  jsonPath: string;
-  summary: {
-    performance: number;
-    accessibility: number;
-    "best-practices": number;
-    seo: number;
-    pwa: number;
-  };
-}
+import { CreateReportGits } from "./infrastructure/create-report-gits.ts";
 
 interface CliArgs {
   file?: string;
@@ -58,12 +45,11 @@ export class LighthouseGistUploader {
         const filename =
           run.jsonPath.split("/").pop() || `lighthouse-${type}.json`;
 
-        const result = await new CreateReport(GetToken.getToken()).execute(
+        const result = await new CreateReport(new CreateReportGits(new Octokit({ auth: GetToken.getToken() }))).execute(
           filename,
           content,
           type,
           run.summary.performance,
-          dryRun
         );
         results.push(result);
 
