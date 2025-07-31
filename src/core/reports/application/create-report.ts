@@ -1,5 +1,5 @@
 import { Report } from "../domain/report.ts";
-import { CreateReportGits } from "../../../infrastructure/create-report-gits.ts";
+import { CreateReportGits } from "../infrastructure/create-report-gits.ts";
 import { ReportRepository } from "../domain/report-repository.ts";
 
 export class CreateReport {

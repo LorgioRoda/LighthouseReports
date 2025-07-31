@@ -1,7 +1,7 @@
 import { Octokit } from "@octokit/rest";
-import { Report } from "../core/reports/domain/report.ts";
+import { Report } from "../domain/report.ts";
 import { createReportAdapter } from "./adapter/create-report-adapter.ts";
-import { ReportRepository } from "../core/reports/domain/report-repository.ts";
+import { ReportRepository } from "../domain/report-repository.ts";
 
 export class CreateReportGits implements ReportRepository {
     constructor(private readonly octokit: Octokit) {

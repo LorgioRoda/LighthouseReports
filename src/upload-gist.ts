@@ -6,7 +6,8 @@ import { GetToken } from "./get-token.ts";
 import { HandleManifest } from "./core/reports/application/handle-manifest.ts";
 import { CreateReport } from "./core/reports/application/create-report.ts";
 import { Report } from "./core/reports/domain/report.ts";
-import { CreateReportGits } from "./infrastructure/create-report-gits.ts";
+import { CreateReportGits } from "./core/reports/infrastructure/create-report-gits.ts";
+import { DependencyContainer } from "./core/reports/dependency-container.ts";
 
 interface CliArgs {
   file?: string;
@@ -15,6 +16,7 @@ interface CliArgs {
 }
 
 export class LighthouseGistUploader {
+  private readonly container = DependencyContainer.getInstance();
 
   /** Read lighthouse report file */
   private readReportFile(reportPath: string): string {
@@ -45,12 +47,11 @@ export class LighthouseGistUploader {
         const filename =
           run.jsonPath.split("/").pop() || `lighthouse-${type}.json`;
 
-        const result = await new CreateReport(new CreateReportGits(new Octokit({ auth: GetToken.getToken() }))).execute(
-          filename,
+        const result = await this.container.createReportUseCase().execute(filename,
           content,
           type,
-          run.summary.performance,
-        );
+          run.summary.performance,)
+          
         results.push(result);
 
         if (dryRun) {

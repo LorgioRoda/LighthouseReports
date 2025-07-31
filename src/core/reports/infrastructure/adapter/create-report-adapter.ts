@@ -1,4 +1,4 @@
-import { Report } from "../../core/reports/domain/report.ts";
+import { Report } from "../../domain/report.ts";
 
 export const createReportAdapter = (gits: any): Report => {
     const id = gits.id;
