@@ -6,7 +6,7 @@ export const createReportAdapter = (gits: any): Report => {
     return {
         id: id ?? "",
         viewerUrl: viewerUrl,
-        filename: gits.files[0].filename,
+        filename: gits.files,
         performance: 0,
         type: gits.type ?? "",
     }

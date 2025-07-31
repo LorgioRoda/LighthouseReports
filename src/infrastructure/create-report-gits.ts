@@ -1,26 +1,33 @@
 import { Octokit } from "@octokit/rest";
 import { Report } from "../core/reports/domain/report.ts";
 import { createReportAdapter } from "./adapter/create-report-adapter.ts";
+import { ReportRepository } from "../core/reports/domain/report-repository.ts";
 
-export class CreateReportGits {
+export class CreateReportGits implements ReportRepository {
     constructor(private readonly octokit: Octokit) {
         this.octokit = octokit;
     }
 
-    public async execute(filename: string, content: string, description: string, type: string, performance: number): Promise<Report> {
+    public async execute(params: {
+        filename: string;
+        content: string;
+        description: string;
+        type: string;
+        performance: number;
+    }): Promise<Report> {
         const response = await this.octokit.gists.create({
-            files: { [filename]: { content } },
+            files: { [params.filename]: { content: params.content } },
             public: false,
-            description,
+            description: params.description,
           });
           const res = createReportAdapter(response.data);
     
           return {
-            type,
+            type: params.type,
             id: res.id,
             viewerUrl: res.viewerUrl,
-            filename,
-            performance: performance * 100,
+            filename: res.filename,
+            performance: params.performance * 100,
           };
     }
 }

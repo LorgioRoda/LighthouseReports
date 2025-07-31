@@ -15,7 +15,13 @@ export class CreateReport {
         try {
           const description = this.getDescription(type, performance);
     
-          const report = await this.createReportGits.execute(filename, content, description, type, performance);
+          const report = await this.createReportGits.execute({
+            filename,
+            content,
+            description,
+            type,
+            performance,
+          });
     
           return {
             type,
