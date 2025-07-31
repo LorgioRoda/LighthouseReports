@@ -1,7 +1,7 @@
 import { Octokit } from "@octokit/rest";
-import { CreateReport } from "./application/create-report";
-import { GetToken } from "../../get-token";
-import { CreateReportGits } from "./infrastructure/create-report-gits";
+import { CreateReport } from "./application/create-report.ts";
+import { GetToken } from "../../get-token.ts";
+import { CreateReportGits } from "./infrastructure/create-report-gits.ts";
 
 
 export class DependencyContainer {

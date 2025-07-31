@@ -1,12 +1,8 @@
-import { Octokit } from "@octokit/rest";
 import * as fs from "fs";
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
-import { GetToken } from "./get-token.ts";
 import { HandleManifest } from "./core/reports/application/handle-manifest.ts";
-import { CreateReport } from "./core/reports/application/create-report.ts";
 import { Report } from "./core/reports/domain/report.ts";
-import { CreateReportGits } from "./core/reports/infrastructure/create-report-gits.ts";
 import { DependencyContainer } from "./core/reports/dependency-container.ts";
 
 interface CliArgs {
