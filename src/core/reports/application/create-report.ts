@@ -1,5 +1,4 @@
 import { Report } from "../domain/report.ts";
-import { CreateReportGits } from "../infrastructure/create-report-gits.ts";
 import { ReportRepository } from "../domain/report-repository.ts";
 
 export class CreateReport {
@@ -14,7 +13,7 @@ export class CreateReport {
       ): Promise<Report> {
         try {
           const description = this.getDescription(type, performance);
-    
+
           const report = await this.reportRepository.createReport({
             filename,
             content,
