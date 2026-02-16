@@ -4,6 +4,7 @@
 	"type": "module",
 	"scripts": {
 		"test": "jest",
+		"test:watch": "jest --watch",
 		"lhci": "lhci autorun",
 		"lhci:mobile": "lhci autorun --config=.lighthouserc.mobile.cjs",
 		"lhci:desktop": "lhci autorun --config=.lighthouserc.desktop.cjs",
