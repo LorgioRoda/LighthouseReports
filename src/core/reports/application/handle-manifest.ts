@@ -1,29 +1,5 @@
 import { ManifestRepository } from "../domain/manifest-repository";
-
-
-type ManifestType = "main" | "mobile" | "desktop";
-
-type ReportPath = "./.lighthouse-reports/manifest.json" | `./.lighthouse-reports/${ManifestType}/manifest.json`;
-
-interface ManifestSource {
-    type: ManifestType;
-    path: ReportPath;
-    runs: ManifestRun[];
-  }
-
-  interface ManifestRun {
-    url: string | string[];
-    isRepresentativeRun: boolean;
-    htmlPath: string;
-    jsonPath: string;
-    summary: {
-      performance: number;
-      accessibility: number;
-      "best-practices": number;
-      seo: number;
-      pwa: number;
-    };
-  }
+import { ManifestRun } from "../domain/manifest";
 
 export class HandleManifest {
     constructor(private manifestRepository: ManifestRepository) {

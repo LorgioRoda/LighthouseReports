@@ -118,74 +118,62 @@ class FakeReportRepository implements ReportRepository {
 
 ---
 
-## Refactoring en progreso
+## Refactoring completado ✅
 
-### Estado actual de `HandleManifest`
+### `HandleManifest`
 
 **Problema original:** La clase hacía DOS cosas:
 1. Leer archivos del filesystem (infraestructura)
 2. Encontrar representative runs (lógica de negocio)
 
-**Solución en progreso:**
+**Solución aplicada:**
 
 1. ✅ Creada interfaz `ManifestRepository` en dominio
 2. ✅ Creada clase `ManifestReader` en infraestructura
 3. ✅ Modificado constructor de `HandleManifest` para recibir `ManifestRepository`
-4. ⏳ **PENDIENTE:** Actualizar tests de `HandleManifest`
-5. ⏳ **PENDIENTE:** Borrar métodos viejos de `HandleManifest`
-6. ⏳ **PENDIENTE:** Actualizar `upload-gist.ts` para pasar el repositorio
+4. ✅ Tests de `HandleManifest` actualizados con `FakeManifest` parametrizable
+5. ✅ Tipos duplicados eliminados (ahora se importan desde `domain/manifest.ts`)
+6. ✅ `upload-gist.ts` actualizado para pasar `ManifestReader`
+7. ✅ Cambiado `process.exit(1)` por `throw new Error()` (mejor diseño)
 
----
-
-## Lo que queda por hacer
-
-### 1. Limpiar `handle-manifest.ts`
-
-Borrar estos métodos (ya están en `ManifestReader`):
-- `readAllManifests()`
-- `getMainManifest()`
-- `getMobileManifest()`
-- `getDesktopManifest()`
-- `import * as fs from "fs"`
-
-### 2. Actualizar tests de `handle-manifest.test.ts`
+### `tests/application/handle-manifest.test.ts`
 
 ```typescript
-// Crear fake correcto
-class FakeManifestRepository implements ManifestRepository {
+// Fake parametrizable - se le pasan datos por constructor
+class FakeManifest implements ManifestRepository {
+    constructor(private sources: ManifestSource[]) {}
     readAllManifests(): ManifestSource[] {
-        return [{
-            type: 'mobile',
-            path: './.lighthouse-reports/mobile/manifest.json',
-            runs: [{ url: '...', isRepresentativeRun: true, ... }]
-        }];
+        return this.sources
     }
 }
 
-// Tests a mantener:
-- should find representative runs
-
-// Tests a mover a manifest-reader.test.ts (o borrar):
-- should read all manifests
-- should find main source
-- should find mobile source
-- should find desktop source
+// Tests:
+✅ should find multiples manifest (3 manifests, solo 2 con representative runs → length 2)
+✅ should find summary values
+✅ should throw error when we dont have representatives
 ```
 
-### 3. Actualizar `upload-gist.ts`
+---
 
-```typescript
-import { ManifestReader } from "./core/reports/infrastructure/manifest-reader";
+---
 
-// Pasar el repositorio real
-const manifestReader = new ManifestReader();
-const handleManifest = new HandleManifest(manifestReader);
-```
+### 6. Lección: Los tests unitarios no lo cubren todo
 
-### 4. (Opcional) Crear tests para `ManifestReader`
+**Qué pasó:** Todos los tests pasaron (7/7), pero la app se rompió en CI.
 
-Si quieres testear la infraestructura, mover los tests viejos a:
-`tests/infrastructure/manifest-reader.test.ts`
+**Por qué:** Los tests unitarios verifican que `HandleManifest` funciona con un Fake, pero nadie verificaba que `upload-gist.ts` le pasara un `ManifestRepository` real. Al cambiar el constructor para requerir un parámetro, `upload-gist.ts` seguía llamando `new HandleManifest()` sin argumento.
+
+**La lección:** Los tests unitarios testean piezas **aisladas**. No garantizan que las piezas estén **conectadas** correctamente.
+
+| Nivel | Qué testea | Qué detecta | Qué NO detecta |
+|-------|-----------|-------------|-----------------|
+| **Unitario** | Una clase aislada con Fakes | Lógica interna rota | Que las piezas no conecten |
+| **Integración** | Varias clases juntas reales | Que las piezas no conecten | Problemas de entorno |
+| **E2E** | El flujo completo | Todo | Son lentos y frágiles |
+
+**Defensa extra:** TypeScript debería haber dado error de compilación al llamar `new HandleManifest()` sin argumentos. Correr `tsc --noEmit` en CI antes de ejecutar detectaría este tipo de error.
+
+> **Regla:** Tests unitarios dan confianza en la lógica. Para confianza en que todo está conectado, necesitás compilación estricta + tests de integración.
 
 ---
 
@@ -249,6 +237,10 @@ npm test -- --watch
 4. **Un test debe verificar UNA cosa**
 5. **Refactoring puro** = tests no cambian
 6. **Cambio de API** = tests sí cambian
+7. **Tests unitarios ≠ confianza total** - Verifican lógica aislada, no que todo esté conectado
+8. **`expect(() => fn()).toThrow()`** para errores síncronos, **`await expect(fn()).rejects.toThrow()`** para async
+9. **`process.exit()` no va en lógica de negocio** - Usar `throw new Error()`, que quien llama decida qué hacer
+10. **Fake parametrizable** - Pasar datos por constructor para reutilizar en distintos escenarios de test
 
 ---
 

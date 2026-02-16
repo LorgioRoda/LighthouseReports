@@ -2,6 +2,7 @@ import * as fs from "fs";
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 import { HandleManifest } from "./core/reports/application/handle-manifest.ts";
+import { ManifestReader } from "./core/reports/infrastructure/manifest-reader.ts";
 import { Report } from "./core/reports/domain/report.ts";
 import { DependencyContainer } from "./core/reports/dependency-container.ts";
 
@@ -26,7 +27,7 @@ export class LighthouseGistUploader {
 
   /** Upload all representative runs */
   async uploadAll(dryRun: boolean = false): Promise<Report[]> {
-    const representativeRuns = new HandleManifest().findAllRepresentativeRuns();
+    const representativeRuns = new HandleManifest(new ManifestReader()).findAllRepresentativeRuns();
     const results: Report[] = [];
 
     console.log(
