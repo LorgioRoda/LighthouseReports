@@ -171,9 +171,20 @@ class FakeManifest implements ManifestRepository {
 | **Integración** | Varias clases juntas reales | Que las piezas no conecten | Problemas de entorno |
 | **E2E** | El flujo completo | Todo | Son lentos y frágiles |
 
-**Defensa extra:** TypeScript debería haber dado error de compilación al llamar `new HandleManifest()` sin argumentos. Correr `tsc --noEmit` en CI antes de ejecutar detectaría este tipo de error.
+**Solución aplicada:** Agregamos `tsc --noEmit` como paso previo a los tests:
 
-> **Regla:** Tests unitarios dan confianza en la lógica. Para confianza en que todo está conectado, necesitás compilación estricta + tests de integración.
+```json
+"typecheck": "tsc --noEmit",
+"test": "npm run typecheck && jest",
+```
+
+Ahora `npm test` tiene dos capas de protección:
+1. **TypeScript (`tsc --noEmit`)** - ¿las piezas conectan? (tipos, parámetros, interfaces)
+2. **Jest** - ¿la lógica funciona? (comportamiento, edge cases)
+
+**¿Por qué jest no detectó el error?** Porque `ts-jest` transpila TypeScript a JavaScript sin verificar tipos. Solo convierte el código para que Node pueda ejecutarlo, pero ignora errores de tipos. `tsc --noEmit` sí verifica tipos sin generar archivos.
+
+> **Regla:** Tests unitarios dan confianza en la lógica. `tsc --noEmit` da confianza en que las piezas conectan. Usá ambos.
 
 ---
 
@@ -200,36 +211,9 @@ const representativeRuns = manifest.runs.filter(run => run.isRepresentativeRun);
 
 ---
 
-## Archivos clave
-
-| Archivo | Propósito |
-|---------|-----------|
-| `src/core/reports/domain/report-repository.ts` | Interfaz para reports |
-| `src/core/reports/domain/manifest-repository.ts` | Interfaz para manifests |
-| `src/core/reports/domain/manifest.ts` | Tipos ManifestSource, ManifestRun |
-| `src/core/reports/application/create-report.ts` | Caso de uso (testeado) |
-| `src/core/reports/application/handle-manifest.ts` | Caso de uso (en refactor) |
-| `src/core/reports/infrastructure/create-report-gits.ts` | Implementación GitHub |
-| `src/core/reports/infrastructure/manifest-reader.ts` | Implementación filesystem |
-
----
-
-## Comandos útiles
-
-```bash
-# Correr todos los tests
-npm test
-
-# Correr un test específico
-npm test -- tests/application/create-report.test.ts
-
-# Correr tests en modo watch
-npm test -- --watch
-```
-
----
-
 ## Conceptos clave recordar
+
+> **Nota:** Comandos, arquitectura y archivos clave están documentados en `CLAUDE.md` en la raíz del proyecto.
 
 1. **Fake > Mock** - Tests menos frágiles
 2. **Interfaz en Dominio** - Aplicación no conoce Infraestructura
@@ -281,3 +265,5 @@ npm test -- --watch
 3. **Lee sobre SOLID** - Ya entiendes la D (Dependency Inversion), explora las otras
 
 4. **Haz el refactoring de HandleManifest** sin ayuda, consultando estas notas
+
+
