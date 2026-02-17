@@ -3,13 +3,14 @@ import { ManifestSource, ManifestRun } from "../domain/manifest";
 import { ManifestRepository } from "../domain/manifest-repository";
 
 export class ManifestReader implements ManifestRepository {
+  constructor(private basePath: string = "./.lighthouse-reports"){}
     public readAllManifests(): ManifestSource[] {
             const sources: ManifestSource[] = [];
         
             try {
               sources.push({
                 type: "main",
-                path: "./.lighthouse-reports/manifest.json",
+                path: `${this.basePath}/manifest.json`,
                 runs: this.getMainManifest(),
               });
               console.log("📋 Main manifest loaded");
@@ -20,7 +21,7 @@ export class ManifestReader implements ManifestRepository {
             try {
               sources.push({
                 type: "mobile",
-                path: "./.lighthouse-reports/mobile/manifest.json",
+                path: `${this.basePath}/mobile/manifest.json`,
                 runs: this.getMobileManifest(),
               });
               console.log("📱 Mobile manifest loaded");
@@ -31,7 +32,7 @@ export class ManifestReader implements ManifestRepository {
             try {
               sources.push({
                 type: "desktop",
-                path: "./.lighthouse-reports/desktop/manifest.json",
+                path: `${this.basePath}/desktop/manifest.json`,
                 runs: this.getDesktopManifest(),
               });
               console.log("🖥️  Desktop manifest loaded");
@@ -41,21 +42,22 @@ export class ManifestReader implements ManifestRepository {
         
             if (sources.length === 0) {
               console.error("❌ No manifest files found");
-              process.exit(1);
+              throw new Error("❌ No manifest files found");
+              
             }
         
             return sources;
           }
     private getDesktopManifest(): ManifestRun[] {
         const desktopContent = fs.readFileSync(
-            "./.lighthouse-reports/desktop/manifest.json",
+            `${this.basePath}/desktop/manifest.json`,
             "utf-8"
             );
             return JSON.parse(desktopContent);
     }
     private getMobileManifest(): ManifestRun[] {
         const mobileContent = fs.readFileSync(
-            "./.lighthouse-reports/mobile/manifest.json",
+            `${this.basePath}/mobile/manifest.json`,
             "utf-8"
             );
             return JSON.parse(mobileContent);
@@ -63,7 +65,7 @@ export class ManifestReader implements ManifestRepository {
 
     private getMainManifest(): ManifestRun[] {
         const mainContent = fs.readFileSync(
-            "./.lighthouse-reports/manifest.json",
+            `${this.basePath}/manifest.json`,
             "utf-8"
             );
             return JSON.parse(mainContent);

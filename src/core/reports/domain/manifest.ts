@@ -1,6 +1,6 @@
 export type ManifestType = "main" | "mobile" | "desktop";
 
-export type ReportPath = "./.lighthouse-reports/manifest.json" | `./.lighthouse-reports/${ManifestType}/manifest.json`;
+export type ReportPath = string;
 
 export interface ManifestSource {
     type: ManifestType;
