@@ -3,7 +3,8 @@
 	"version": "0.0.1",
 	"type": "module",
 	"scripts": {
-		"test": "jest",
+		"typecheck": "tsc --noEmit",
+		"test": "npm run typecheck && jest",
 		"test:watch": "jest --watch",
 		"lhci": "lhci autorun",
 		"lhci:mobile": "lhci autorun --config=.lighthouserc.mobile.cjs",
