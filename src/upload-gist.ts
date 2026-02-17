@@ -1,37 +1,24 @@
-import * as fs from "fs";
-import yargs from "yargs";
-import { hideBin } from "yargs/helpers";
 import { HandleManifest } from "./core/reports/application/handle-manifest.ts";
 import { ManifestReader } from "./core/reports/infrastructure/manifest-reader.ts";
 import { Report } from "./core/reports/domain/report.ts";
 import { DependencyContainer } from "./core/reports/dependency-container.ts";
-
-interface CliArgs {
-  file?: string;
-  gist?: string;
-  dryRun?: boolean;
-}
+import { FileReaderSystem } from "./core/reports/infrastructure/file-reader-system.ts";
+import { FileReader } from "./core/reports/domain/file-reader.ts";
+import { CreateReport } from "./core/reports/application/create-report.ts";
 
 export class LighthouseGistUploader {
-  private readonly container = DependencyContainer.getInstance();
+  constructor(
+    private handleManifest: HandleManifest, 
+    private fileReader: FileReader,
+    private createReport: CreateReport
+  ){}
 
-  /** Read lighthouse report file */
-  private readReportFile(reportPath: string): string {
-    try {
-      return fs.readFileSync(reportPath, "utf-8");
-    } catch (err) {
-      console.error(`❌ Unable to read report file ${reportPath}:`, err);
-      throw err;
-    }
-  }
-
-  /** Upload all representative runs */
-  async uploadAll(dryRun: boolean = false): Promise<Report[]> {
-    const representativeRuns = new HandleManifest(new ManifestReader()).findAllRepresentativeRuns();
+  async uploadAll(): Promise<Report[]> {
+    const representativeRuns = this.handleManifest.findAllRepresentativeRuns();
     const results: Report[] = [];
 
     console.log(
-      `\n🚀 ${dryRun ? "DRY RUN - " : ""}Uploading ${
+      `\n🚀 Uploading ${
         representativeRuns.length
       } representative runs...`
     );
@@ -40,23 +27,20 @@ export class LighthouseGistUploader {
       console.log(`\n📤 Processing ${type} report...`);
 
       try {
-        const content = this.readReportFile(run.jsonPath);
+        const content = this.fileReader.read(run.jsonPath)
         const filename =
           run.jsonPath.split("/").pop() || `lighthouse-${type}.json`;
 
-        const result = await this.container.createReportUseCase().execute(filename,
+        const result = await this.createReport.execute(filename,
           content,
           type,
           run.summary.performance,)
           
         results.push(result);
 
-        if (dryRun) {
-          console.log(`🧪 ${type.toUpperCase()} gist simulation completed`);
-        } else {
-          console.log(`✅ ${type.toUpperCase()} gist created: ${result.id}`);
-          console.log(`🔗 Viewer: ${result.viewerUrl}`);
-        }
+        console.log(`✅ ${type.toUpperCase()} gist created: ${result.id}`);
+        console.log(`🔗 Viewer: ${result.viewerUrl}`);
+
       } catch (err) {
         console.error(`❌ Failed to upload ${type} report:`, err);
       }
@@ -82,55 +66,22 @@ export class LighthouseGistUploader {
   }
 }
 
-function parseArguments(): CliArgs {
-  return yargs(hideBin(process.argv))
-    .usage("Usage: $0 [options]")
-    .option("file", {
-      alias: "f",
-      type: "string",
-      describe: "Path to a specific Lighthouse JSON report (optional)",
-    })
-    .option("gist", {
-      alias: "g",
-      type: "string",
-      describe: "Gist ID to update (for single file mode only)",
-    })
-    .option("dry-run", {
-      alias: "d",
-      type: "boolean",
-      describe: "Test mode - don't upload to GitHub, just simulate",
-    })
-    .help()
-    .parseSync();
-}
-
 async function main(): Promise<void> {
   console.log("🚀 Lighthouse Gist Uploader - Multiple Reports Mode");
   console.log("━".repeat(50));
 
-  const args = parseArguments();
-  const dryRun = args.dryRun || false;
-  const uploader = new LighthouseGistUploader();
-
-  if (dryRun) {
-    console.log("🧪 DRY RUN MODE - No actual uploads will be made");
-    console.log("━".repeat(50));
-  }
+  const container = DependencyContainer.getInstance();
+  const uploader = new LighthouseGistUploader(
+    new HandleManifest(new ManifestReader()),
+    new FileReaderSystem(), container.createReportUseCase()
+  );
 
   try {
-    const results = await uploader.uploadAll(dryRun);
-    uploader.displaySummary(results, dryRun);
-
-    if (dryRun) {
-      console.log(
-        "🧪 Dry run completed successfully! Use without --dry-run to actually upload."
-      );
-    } else {
-      console.log("✅ All uploads completed successfully!");
-    }
-  } catch (err) {
-    console.error("❌ Upload process failed:", err);
-    process.exit(1);
+    const results = await uploader.uploadAll();
+    uploader.displaySummary(results);
+  }
+  catch {
+    console.error("Error");
   }
 }
 
