@@ -1,11 +1,9 @@
 import { Report } from "../domain/report.ts";
 import { ReportRepository } from "../domain/report-repository.ts";
-import { Logger } from "../domain/logger.ts";
 
 export class CreateReport {
     constructor(
         private readonly reportRepository: ReportRepository,
-        private readonly logger: Logger,
     ) {}
 
     public async execute(
@@ -33,7 +31,7 @@ export class CreateReport {
             performance: report.performance,
           };
         } catch (err) {
-          this.logger.error(`❌ Error creating report for ${type}:`, err);
+          console.error(`❌ Error creating report for ${type}:`, err);
           throw err;
         }
       }

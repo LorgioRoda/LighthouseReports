@@ -3,20 +3,9 @@ import { ManifestRepository } from "../../src/core/reports/domain/manifest-repos
 import { ManifestSource } from "../../src/core/reports/domain/manifest";
 import { FileReader } from "../../src/core/reports/domain/file-reader";
 import { ReportRepository } from "../../src/core/reports/domain/report-repository";
-import { Report } from "../../src/core/reports/domain/report";  
+import { Report } from "../../src/core/reports/domain/report";
 import { CreateReport } from "../../src/core/reports/application/create-report";
 import { CreateReportsFromManifest } from "../../src/core/reports/application/create-reports-from-manifest";
-import { Logger } from "../../src/core/reports/domain/logger";
-
-class FakeLogger implements Logger {
-    public messages: string[] = [];
-    info(message: string): void {
-        this.messages.push(message);
-    }
-    error(message: string): void {
-        this.messages.push(message);
-    }
-}
 
 class FakeFileReader implements FileReader {
     read(path: string): string {
@@ -35,8 +24,7 @@ class FakeFileReader implements FileReader {
           isRepresentativeRun: true,
           htmlPath: "test.html",
           jsonPath: "test.json",
-          summary: { performance: 0.9, accessibility: 0.8, "best-practices": 0.7, seo: 0.6, pwa: 0
-   },
+          summary: { performance: 0.9, accessibility: 0.8, "best-practices": 0.7, seo: 0.6, pwa: 0 },
         }],
       }];
     }
@@ -64,14 +52,14 @@ class FakeReportRepository implements ReportRepository{
 
 describe('create-reports-from-manifest', () => {
     it("should content url, id and file", async () => {
-        const handleManifest = new HandleManifest(new FakeManifest(), new FakeLogger());
-        const createReport = new CreateReport(new FakeReportRepository(), new FakeLogger());
-        const uploader = new CreateReportsFromManifest(handleManifest, new FakeFileReader(), createReport, new FakeLogger());
+        const handleManifest = new HandleManifest(new FakeManifest());
+        const createReport = new CreateReport(new FakeReportRepository());
+        const uploader = new CreateReportsFromManifest(handleManifest, new FakeFileReader(), createReport);
         const results = await uploader.execute();
-        
+
         expect(results[0].viewerUrl).toBe("fake.com");
         expect(results[0].id).toBe("fake-id");
         expect(results[0].filename).toBe("test.json");
-        
+
     })
  })

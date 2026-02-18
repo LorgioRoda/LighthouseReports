@@ -1,21 +1,11 @@
 import * as fs from "fs";
 import { ManifestSource, ManifestRun } from "../domain/manifest";
 import { ManifestRepository } from "../domain/manifest-repository";
-import { Logger } from "../domain/logger";
-
-interface ManifestReaderOptions {
-  logger?: Logger;
-  basePath?: string;
-}
 
 export class ManifestReader implements ManifestRepository {
-  private logger: Logger;
-  private basePath: string;
-
-  constructor({ logger, basePath }: ManifestReaderOptions = {}) {
-    this.logger = logger ?? { info: () => {}, error: () => {} };
-    this.basePath = basePath ?? "./.lighthouse-reports";
-  }
+  constructor(
+    private basePath: string = "./.lighthouse-reports",
+  ) {}
 
     public readAllManifests(): ManifestSource[] {
             const sources: ManifestSource[] = [];
@@ -26,9 +16,9 @@ export class ManifestReader implements ManifestRepository {
                 path: `${this.basePath}/manifest.json`,
                 runs: this.getMainManifest(),
               });
-              this.logger.info("📋 Main manifest loaded");
+              console.log("📋 Main manifest loaded");
             } catch {
-              this.logger.info("⚠️  Main manifest not found");
+              console.log("⚠️  Main manifest not found");
             }
 
             try {
@@ -37,9 +27,9 @@ export class ManifestReader implements ManifestRepository {
                 path: `${this.basePath}/mobile/manifest.json`,
                 runs: this.getMobileManifest(),
               });
-              this.logger.info("📱 Mobile manifest loaded");
+              console.log("📱 Mobile manifest loaded");
             } catch {
-              this.logger.info("⚠️  Mobile manifest not found");
+              console.log("⚠️  Mobile manifest not found");
             }
 
             try {
@@ -48,13 +38,13 @@ export class ManifestReader implements ManifestRepository {
                 path: `${this.basePath}/desktop/manifest.json`,
                 runs: this.getDesktopManifest(),
               });
-              this.logger.info("🖥️  Desktop manifest loaded");
+              console.log("🖥️  Desktop manifest loaded");
             } catch {
-              this.logger.info("⚠️  Desktop manifest not found");
+              console.log("⚠️  Desktop manifest not found");
             }
 
             if (sources.length === 0) {
-              this.logger.error("❌ No manifest files found");
+              console.error("❌ No manifest files found");
               throw new Error("❌ No manifest files found");
             }
 

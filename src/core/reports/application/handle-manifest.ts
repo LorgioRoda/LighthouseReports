@@ -1,11 +1,9 @@
 import { ManifestRepository } from "../domain/manifest-repository";
-import { Logger } from "../domain/logger";
 import { ManifestRun } from "../domain/manifest";
 
 export class HandleManifest {
     constructor(
         private manifestRepository: ManifestRepository,
-        private logger: Logger,
     ) {}
 
     public findAllRepresentativeRuns(): Array<{ run: ManifestRun; type: string }> {
@@ -15,11 +13,11 @@ export class HandleManifest {
           const representativeRun = manifest.runs.filter((run) => run.isRepresentativeRun);
 
           if (representativeRun.length === 0) {
-            this.logger.info(`⚠️  No representative run found in ${manifest.type} manifest`);
+            console.log(`⚠️  No representative run found in ${manifest.type} manifest`);
             return [];
           }
 
-          this.logger.info(
+          console.log(
             `✅ Found representative run for ${manifest.type}: Performance ${Math.round(
               representativeRun[0].summary.performance * 100
             )}%`
@@ -28,7 +26,7 @@ export class HandleManifest {
         });
 
         if (representativeRuns.length === 0) {
-          this.logger.error("❌ No representative runs found in any manifest");
+          console.error("❌ No representative runs found in any manifest");
           throw new Error("❌ No representative runs found in any manifest");
         }
 

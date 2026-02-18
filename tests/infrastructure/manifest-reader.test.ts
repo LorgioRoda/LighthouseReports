@@ -3,7 +3,7 @@ import * as os from "os";
 import * as path from "path";
 import { ManifestReader } from "../../src/core/reports/infrastructure/manifest-reader"
 
-describe('manifest-reader', () => { 
+describe('manifest-reader', () => {
     let tmpDir: string;
     beforeEach(() => {
       tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "lh-test-"));
@@ -28,7 +28,7 @@ describe('manifest-reader', () => {
     });
 
     it("should read mobile manifest from custom basePath", () => {
-      const reader = new ManifestReader({ basePath: tmpDir });
+      const reader = new ManifestReader(tmpDir);
       const sources = reader.readAllManifests();
 
       expect(sources.length).toBe(1);
@@ -36,7 +36,7 @@ describe('manifest-reader', () => {
       expect(sources[0].runs[0].summary.performance).toBe(0.9);
     });
     it("should throw error when no manifest are found", () => {
-        const reader = new ManifestReader({ basePath: '' });
+        const reader = new ManifestReader('');
         expect(() => reader.readAllManifests()).toThrow("❌ No manifest files found")
     })
 })
