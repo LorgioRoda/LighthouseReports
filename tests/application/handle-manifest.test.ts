@@ -1,6 +1,12 @@
 import { HandleManifest } from '../../src/core/reports/application/handle-manifest.js';
 import { ManifestRepository } from '../../src/core/reports/domain/manifest-repository.js';
 import { ManifestSource } from '../../src/core/reports/domain/manifest.js';
+import { Logger } from '../../src/core/reports/domain/logger.js';
+
+class FakeLogger implements Logger {
+  info(): void {}
+  error(): void {}
+}
 
 
 const fakeManifestSources: ManifestSource[] = [{
@@ -106,17 +112,17 @@ describe("readAllManifests", () => {
     
   it('should find multiples manifest', () => {
     const fakeManifest = new FakeManifest(fakeManifestSources)
-    const manifest = new HandleManifest(fakeManifest).findAllRepresentativeRuns()
+    const manifest = new HandleManifest(fakeManifest, new FakeLogger()).findAllRepresentativeRuns()
     expect(manifest.length).toBe(2)
   })
   it('should find summary values', () => {
     const fakeManifest = new FakeManifest(fakeManifestSources)
-    const manifest = new HandleManifest(fakeManifest).findAllRepresentativeRuns()
+    const manifest = new HandleManifest(fakeManifest, new FakeLogger()).findAllRepresentativeRuns()
     expect(manifest[0].run.summary).toMatchObject({ performance: 0.42, accessibility: 0, 'best-practices': 0, seo: 0, pwa: 0 })
   })
   it('should throw error when we dont have representatives',  () => {
     const fakeManifest = new FakeManifest(fakeManifestSourcesWithOutRepresentativeRun)
     
-    expect(() => new HandleManifest(fakeManifest).findAllRepresentativeRuns()).toThrow("❌ No representative runs found in any manifest")
+    expect(() => new HandleManifest(fakeManifest, new FakeLogger()).findAllRepresentativeRuns()).toThrow("❌ No representative runs found in any manifest")
   })
 });

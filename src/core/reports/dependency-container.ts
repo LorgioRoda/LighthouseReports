@@ -2,6 +2,7 @@ import { Octokit } from "@octokit/rest";
 import { CreateReport } from "./application/create-report.ts";
 import { GetToken } from "../../get-token.ts";
 import { CreateReportGits } from "./infrastructure/create-report-gits.ts";
+import { ConsoleLogger } from "./infrastructure/console-logger.ts";
 
 
 export class DependencyContainer {
@@ -19,6 +20,6 @@ export class DependencyContainer {
   createReportUseCase(): CreateReport {
     const octokit = new Octokit({ auth: GetToken.getToken() });
     const reportRepository = new CreateReportGits(octokit);
-    return new CreateReport(reportRepository);
+    return new CreateReport(reportRepository, new ConsoleLogger());
   }
 }

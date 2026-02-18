@@ -1,9 +1,12 @@
 import { Report } from "../domain/report.ts";
 import { ReportRepository } from "../domain/report-repository.ts";
+import { Logger } from "../domain/logger.ts";
 
 export class CreateReport {
-    constructor(private readonly reportRepository: ReportRepository) {
-    }
+    constructor(
+        private readonly reportRepository: ReportRepository,
+        private readonly logger: Logger,
+    ) {}
 
     public async execute(
         filename: string,
@@ -21,7 +24,7 @@ export class CreateReport {
             type,
             performance,
           });
-    
+
           return {
             type,
             id: report.id,
@@ -30,11 +33,11 @@ export class CreateReport {
             performance: report.performance,
           };
         } catch (err) {
-          console.error(`❌ Error creating report for ${type}:`, err);
+          this.logger.error(`❌ Error creating report for ${type}:`, err);
           throw err;
         }
       }
-    
+
     private getDescription(type: string, performance: number): string {
         return `Lighthouse Report - ${type.toUpperCase()} (${Math.round(
             performance * 100

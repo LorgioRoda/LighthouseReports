@@ -1,6 +1,12 @@
 import { CreateReport } from "../../src/core/reports/application/create-report";
 import { Report } from "../../src/core/reports/domain/report";
 import { ReportRepository } from "../../src/core/reports/domain/report-repository";
+import { Logger } from "../../src/core/reports/domain/logger";
+
+class FakeLogger implements Logger {
+    info(): void {}
+    error(): void {}
+}
 
 class FakeReportRepository implements ReportRepository{
     public lastParams: any = null
@@ -31,19 +37,19 @@ class FakeReportRepositoryWithError implements ReportRepository {
 describe('CreateReport', () => { 
     it('should create a description', async ()  => {
         const fakeRepo = new FakeReportRepository()
-        const createReport = new CreateReport(fakeRepo)
+        const createReport = new CreateReport(fakeRepo, new FakeLogger())
         await createReport.execute("report.json", "{}", "mobile", 0.35);
         expect(fakeRepo.lastParams.description).toBe("Lighthouse Report - MOBILE (35% performance)")
     })
     it('should send report data like content, filename, type and performance', async () => {
         const fakeRepo = new FakeReportRepository()
-        const createReport = new CreateReport(fakeRepo)
+        const createReport = new CreateReport(fakeRepo, new FakeLogger())
         await createReport.execute("report.json", "{}", "mobile", 0.35);
         expect(fakeRepo.lastParams).toMatchObject( {"content": "{}", "description": "Lighthouse Report - MOBILE (35% performance)", "filename": "report.json", "performance": 0.35, "type": "mobile"})
     })
     it('should return a report with correct fields', async () => {
         const fakeRepo = new FakeReportRepository()
-        const createReport = new CreateReport(fakeRepo)
+        const createReport = new CreateReport(fakeRepo, new FakeLogger())
         const report = await createReport.execute("report.json", "{}", "mobile", 0.35);
          expect(report).toMatchObject({                                                         
           type: "mobile",                                                                    
@@ -55,7 +61,7 @@ describe('CreateReport', () => {
     })
     it('should throw error when repository fails', async () => {
         const fakeRepo = new FakeReportRepositoryWithError()
-        const createReport = new CreateReport(fakeRepo)
+        const createReport = new CreateReport(fakeRepo, new FakeLogger())
         const report = createReport.execute("report.json", "{}", "mobile", 0.35);
         await expect(report).rejects.toThrow("GitHub API failed");
         
