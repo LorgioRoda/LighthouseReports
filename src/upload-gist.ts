@@ -3,67 +3,21 @@ import { ManifestReader } from "./core/reports/infrastructure/manifest-reader.ts
 import { Report } from "./core/reports/domain/report.ts";
 import { DependencyContainer } from "./core/reports/dependency-container.ts";
 import { FileReaderSystem } from "./core/reports/infrastructure/file-reader-system.ts";
-import { FileReader } from "./core/reports/domain/file-reader.ts";
-import { CreateReport } from "./core/reports/application/create-report.ts";
+import { CreateReportsFromManifest } from "./core/reports/application/create-reports-from-manifest.ts";
+import { ConsoleLogger } from "./core/reports/infrastructure/console-logger.ts";
 
-export class LighthouseGistUploader {
-  constructor(
-    private handleManifest: HandleManifest, 
-    private fileReader: FileReader,
-    private createReport: CreateReport
-  ){}
+function displaySummary(results: Report[]): void {
+  results.forEach((result, index) => {
+    console.log(`${index + 1}. ${result.type.toUpperCase()}`);
+    console.log(`   📈 Performance: ${Math.round(result.performance)}%`);
+    console.log(`   🆔 Gist ID: ${result.id}`);
+    console.log(`   🔗 Viewer: ${result.viewerUrl}`);
+    console.log("");
+  });
 
-  async uploadAll(): Promise<Report[]> {
-    const representativeRuns = this.handleManifest.findAllRepresentativeRuns();
-    const results: Report[] = [];
-
-    console.log(
-      `\n🚀 Uploading ${
-        representativeRuns.length
-      } representative runs...`
-    );
-
-    for (const { run, type } of representativeRuns) {
-      console.log(`\n📤 Processing ${type} report...`);
-
-      try {
-        const content = this.fileReader.read(run.jsonPath)
-        const filename =
-          run.jsonPath.split("/").pop() || `lighthouse-${type}.json`;
-
-        const result = await this.createReport.execute(filename,
-          content,
-          type,
-          run.summary.performance,)
-          
-        results.push(result);
-
-        console.log(`✅ ${type.toUpperCase()} gist created: ${result.id}`);
-        console.log(`🔗 Viewer: ${result.viewerUrl}`);
-
-      } catch (err) {
-        console.error(`❌ Failed to upload ${type} report:`, err);
-      }
-    }
-
-    return results;
-  }
-
-  /** Display summary of all created gists */
-  displaySummary(results: Report[], dryRun: boolean = false): void {
-
-    results.forEach((result, index) => {
-      console.log(`${index + 1}. ${result.type.toUpperCase()}`);
-      console.log(`   📈 Performance: ${Math.round(result.performance)}%`);
-      console.log(`   🆔 Gist ID: ${result.id}`);
-      console.log(`   🔗 Viewer: ${result.viewerUrl}`);
-      console.log("");
-    });
-
-    const avgPerformance =
-      results.reduce((sum, r) => sum + r.performance, 0) / results.length;
-    console.log(`📊 Average Performance: ${Math.round(avgPerformance)}%`);
-  }
+  const avgPerformance =
+    results.reduce((sum, r) => sum + r.performance, 0) / results.length;
+  console.log(`📊 Average Performance: ${Math.round(avgPerformance)}%`);
 }
 
 async function main(): Promise<void> {
@@ -71,17 +25,18 @@ async function main(): Promise<void> {
   console.log("━".repeat(50));
 
   const container = DependencyContainer.getInstance();
-  const uploader = new LighthouseGistUploader(
-    new HandleManifest(new ManifestReader()),
-    new FileReaderSystem(), container.createReportUseCase()
+  const createReports = new CreateReportsFromManifest(
+    new HandleManifest(new ManifestReader(undefined, new ConsoleLogger()), new ConsoleLogger()),
+    new FileReaderSystem(),
+    container.createReportUseCase(),
+    new ConsoleLogger(),
   );
 
   try {
-    const results = await uploader.uploadAll();
-    uploader.displaySummary(results);
-  }
-  catch {
-    console.error("Error");
+    const results = await createReports.execute();
+    displaySummary(results);
+  } catch (err) {
+    console.error("Upload process failed:", err);
   }
 }
 
