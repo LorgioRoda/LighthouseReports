@@ -26,7 +26,7 @@ async function main(): Promise<void> {
 
   const container = DependencyContainer.getInstance();
   const createReports = new CreateReportsFromManifest(
-    new HandleManifest(new ManifestReader(undefined, new ConsoleLogger()), new ConsoleLogger()),
+    new HandleManifest(new ManifestReader({ logger: new ConsoleLogger() }), new ConsoleLogger()),
     new FileReaderSystem(),
     container.createReportUseCase(),
     new ConsoleLogger(),
@@ -40,16 +40,7 @@ async function main(): Promise<void> {
   }
 }
 
-const isDirectRun = (() => {
-  if (typeof process !== 'undefined' && (process.env.NODE_ENV === 'test' || process.env.JEST_WORKER_ID)) {
-    return false;
-  }
-  return process.argv.length > 1 && process.argv.some(arg => arg.includes('upload-gist'));
-})();
-
-if (isDirectRun) {
-  main().catch((err) => {
-    console.error("❌ Unexpected error:", err);
-    process.exit(1);
-  });
-}
+main().catch((err) => {
+  console.error("❌ Unexpected error:", err);
+  process.exit(1);
+});

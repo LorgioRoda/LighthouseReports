@@ -3,11 +3,19 @@ import { ManifestSource, ManifestRun } from "../domain/manifest";
 import { ManifestRepository } from "../domain/manifest-repository";
 import { Logger } from "../domain/logger";
 
+interface ManifestReaderOptions {
+  logger?: Logger;
+  basePath?: string;
+}
+
 export class ManifestReader implements ManifestRepository {
-  constructor(
-    private basePath: string = "./.lighthouse-reports",
-    private logger: Logger = { info: () => {}, error: () => {} },
-  ) {}
+  private logger: Logger;
+  private basePath: string;
+
+  constructor({ logger, basePath }: ManifestReaderOptions = {}) {
+    this.logger = logger ?? { info: () => {}, error: () => {} };
+    this.basePath = basePath ?? "./.lighthouse-reports";
+  }
 
     public readAllManifests(): ManifestSource[] {
             const sources: ManifestSource[] = [];

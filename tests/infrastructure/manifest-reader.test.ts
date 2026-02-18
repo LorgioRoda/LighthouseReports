@@ -28,7 +28,7 @@ describe('manifest-reader', () => {
     });
 
     it("should read mobile manifest from custom basePath", () => {
-      const reader = new ManifestReader(tmpDir);
+      const reader = new ManifestReader({ basePath: tmpDir });
       const sources = reader.readAllManifests();
 
       expect(sources.length).toBe(1);
@@ -36,7 +36,7 @@ describe('manifest-reader', () => {
       expect(sources[0].runs[0].summary.performance).toBe(0.9);
     });
     it("should throw error when no manifest are found", () => {
-        const reader = new ManifestReader('');
+        const reader = new ManifestReader({ basePath: '' });
         expect(() => reader.readAllManifests()).toThrow("❌ No manifest files found")
     })
 })
