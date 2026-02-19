@@ -20,9 +20,9 @@ export class DependencyContainer {
     return DependencyContainer.instance;
   }
 
-  createReportsFromManifestUseCase(): CreateReportsFromManifest {
+  createReportsFromManifestUseCase(reportsBasePath?: string): CreateReportsFromManifest {
     return new CreateReportsFromManifest(
-      new HandleManifest(new ManifestReader()),
+      new HandleManifest(new ManifestReader(reportsBasePath)),
       new FileReaderSystem(),
       this.createReportUseCase(),
     );

@@ -1,4 +1,5 @@
 import * as fs from "fs";
+import * as path from "path";
 import { Report } from "./core/reports/domain/report.ts";
 import { DependencyContainer } from "./core/reports/dependency-container.ts";
 
@@ -19,14 +20,18 @@ function displaySummary(results: Report[]): void {
 }
 
 async function main(): Promise<void> {
+  const workspacePath = process.argv[2] || ".";
+  const reportsBasePath = path.join(workspacePath, ".lighthouse-reports");
+
   const container = DependencyContainer.getInstance();
-  const createReports = container.createReportsFromManifestUseCase();
+  const createReports = container.createReportsFromManifestUseCase(reportsBasePath);
 
   const results = await createReports.execute();
   displaySummary(results);
 
-  fs.writeFileSync("results.json", JSON.stringify(results, null, 2));
-  console.log("Results written to results.json");
+  const resultsPath = path.join(workspacePath, "results.json");
+  fs.writeFileSync(resultsPath, JSON.stringify(results, null, 2));
+  console.log(`Results written to ${resultsPath}`);
 }
 
 main().catch((err) => {
