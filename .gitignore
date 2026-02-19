@@ -27,4 +27,7 @@ dist-ssr
 .npmrc
 .lighthouse-reports
 .lighthouseci
+.lighthouserc.mobile.json
+.lighthouserc.desktop.json
+results.json
 

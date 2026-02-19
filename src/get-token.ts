@@ -6,8 +6,7 @@ export class GetToken {
 
     const token = process.env.GH_TOKEN || process.env.GITHUB_TOKEN;
     if (!token) {
-      console.error("❌ You need to define GH_TOKEN or use GITHUB_TOKEN from Actions");
-      process.exit(1);
+      throw new Error("You need to define GH_TOKEN or use GITHUB_TOKEN from Actions");
     }
     return token;
   }

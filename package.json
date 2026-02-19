@@ -10,7 +10,9 @@
 		"lhci:mobile": "lhci autorun --config=.lighthouserc.mobile.cjs",
 		"lhci:desktop": "lhci autorun --config=.lighthouserc.desktop.cjs",
 		"lhci:all": "npm run lhci:mobile && npm run lhci:desktop",
-		"upload-gist": "node --loader ts-node/esm src/main.ts --gist=$LIGHTHOUSE_GIST_ID"
+		"upload-gist": "node --loader ts-node/esm src/main.ts --gist=$LIGHTHOUSE_GIST_ID",
+		"generate-config": "node --loader ts-node/esm src/generate-config.ts",
+		"action": "node --loader ts-node/esm src/action-entrypoint.ts"
 	},
 	"devDependencies": {
 		"@jest/globals": "^30.0.4",
