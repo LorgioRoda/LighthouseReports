@@ -61,6 +61,7 @@ runs:
       shell: bash
       env:
         GH_TOKEN: ${{ inputs.gh-token }}
+        NODE_PATH: ${{ github.action_path }}/node_modules
       run: node --loader ts-node/esm ${{ github.action_path }}/src/action-entrypoint.ts
 
     - name: Parse results and set outputs
