@@ -59,15 +59,13 @@ runs:
 
     - name: Upload reports to Gists
       shell: bash
-      working-directory: ${{ github.action_path }}
       env:
         GH_TOKEN: ${{ inputs.gh-token }}
-      run: node --loader ts-node/esm src/action-entrypoint.ts
+      run: node --loader ts-node/esm ${{ github.action_path }}/src/action-entrypoint.ts
 
     - name: Parse results and set outputs
       id: parse-results
       shell: bash
-      working-directory: ${{ github.action_path }}
       run: |
         MOBILE_URL=$(node -e "const r=JSON.parse(require('fs').readFileSync('results.json','utf8')); const m=r.find(x=>x.type==='mobile'); console.log(m?.viewerUrl||'')")
         DESKTOP_URL=$(node -e "const r=JSON.parse(require('fs').readFileSync('results.json','utf8')); const d=r.find(x=>x.type==='desktop'); console.log(d?.viewerUrl||'')")
@@ -84,7 +82,6 @@ runs:
 
     - name: Generate summary
       shell: bash
-      working-directory: ${{ github.action_path }}
       run: |
         MOBILE_URL=$(node -e "const r=JSON.parse(require('fs').readFileSync('results.json','utf8')); const m=r.find(x=>x.type==='mobile'); console.log(m?.viewerUrl||'')")
         DESKTOP_URL=$(node -e "const r=JSON.parse(require('fs').readFileSync('results.json','utf8')); const d=r.find(x=>x.type==='desktop'); console.log(d?.viewerUrl||'')")
