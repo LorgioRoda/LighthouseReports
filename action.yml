@@ -27,22 +27,22 @@ outputs:
 runs:
   using: "composite"
   steps:
-    - name: Setup pnpm
-      uses: pnpm/action-setup@v4
-
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
         node-version: "20"
 
-    - name: Install dependencies
+    - name: Install pnpm and dependencies
       shell: bash
       working-directory: ${{ github.action_path }}
-      run: pnpm install --frozen-lockfile
+      run: |
+        corepack enable
+        corepack prepare pnpm@9 --activate
+        pnpm install --frozen-lockfile
 
     - name: Install LHCI
       shell: bash
-      run: pnpm add -g @lhci/cli
+      run: npm install -g @lhci/cli
 
     - name: Generate Lighthouse configs
       shell: bash
@@ -62,7 +62,7 @@ runs:
       env:
         GH_TOKEN: ${{ inputs.gh-token }}
         NODE_PATH: ${{ github.action_path }}/node_modules
-      run: node --loader ts-node/esm ${{ github.action_path }}/src/action-entrypoint.ts
+      run: node --loader ${{ github.action_path }}/node_modules/ts-node/esm.mjs ${{ github.action_path }}/src/action-entrypoint.ts
 
     - name: Parse results and set outputs
       id: parse-results
