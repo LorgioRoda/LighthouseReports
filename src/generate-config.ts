@@ -6,6 +6,8 @@ export interface LighthouseConfig {
       url: string[];
       numberOfRuns: number;
       settings: Record<string, unknown>;
+      chromePath?: string;
+      chromeFlags?: string[];
     };
     upload: {
       target: string;
@@ -21,11 +23,18 @@ export function parseUrls(input: string): string[] {
     .filter((url) => url.length > 0);
 }
 
+function applyChromePath(config: LighthouseConfig): void {
+  if (process.env.CHROME_PATH) {
+    config.ci.collect.chromePath = process.env.CHROME_PATH;
+    config.ci.collect.chromeFlags = ["--no-sandbox"];
+  }
+}
+
 export function buildMobileConfig(
   urls: string[],
   numberOfRuns: number,
 ): LighthouseConfig {
-  return {
+  const config: LighthouseConfig = {
     ci: {
       collect: {
         url: urls,
@@ -40,13 +49,15 @@ export function buildMobileConfig(
       },
     },
   };
+  applyChromePath(config);
+  return config;
 }
 
 export function buildDesktopConfig(
   urls: string[],
   numberOfRuns: number,
 ): LighthouseConfig {
-  return {
+  const config: LighthouseConfig = {
     ci: {
       collect: {
         url: urls,
@@ -76,6 +87,8 @@ export function buildDesktopConfig(
       },
     },
   };
+  applyChromePath(config);
+  return config;
 }
 
 function writeConfig(path: string, config: LighthouseConfig): void {

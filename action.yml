@@ -40,18 +40,33 @@ runs:
         corepack prepare pnpm@9 --activate
         pnpm install --frozen-lockfile
 
-    - name: Install Chrome dependencies
+    - name: Install Chrome
       shell: bash
       run: |
-        sudo apt-get update
-        sudo apt-get install -y libatk1.0-0 libatk-bridge2.0-0 libcups2 libxdamage1 \
-          libxkbcommon0 libpango-1.0-0 libcairo2 libasound2 libnspr4 libnss3 \
-          libgbm1 libxrandr2 libgtk-3-0 libxshmfence1
-
-    - name: Install Chrome
-      uses: browser-actions/setup-chrome@v1
-      with:
-        chrome-version: stable
+        if command -v google-chrome &> /dev/null; then
+          echo "Chrome already installed: $(google-chrome --version)"
+        elif command -v apt-get &> /dev/null; then
+          sudo apt-get update
+          sudo apt-get install -y wget gnupg
+          wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo gpg --dearmor -o /usr/share/keyrings/google-chrome.gpg
+          echo "deb [arch=amd64 signed-by=/usr/share/keyrings/google-chrome.gpg] http://dl.google.com/linux/chrome/deb/ stable main" | sudo tee /etc/apt/sources.list.d/google-chrome.list
+          sudo apt-get update
+          sudo apt-get install -y google-chrome-stable
+        elif command -v yum &> /dev/null; then
+          sudo tee /etc/yum.repos.d/google-chrome.repo << 'REPO'
+        [google-chrome]
+        name=Google Chrome
+        baseurl=https://dl.google.com/linux/chrome/rpm/stable/x86_64
+        enabled=1
+        gpgcheck=1
+        gpgkey=https://dl.google.com/linux/linux_signing_key.pub
+        REPO
+          sudo yum install -y google-chrome-stable
+        else
+          echo "::error::Unsupported OS. Install Google Chrome manually on this runner."
+          exit 1
+        fi
+        echo "CHROME_PATH=$(which google-chrome)" >> $GITHUB_ENV
 
     - name: Install LHCI
       shell: bash
