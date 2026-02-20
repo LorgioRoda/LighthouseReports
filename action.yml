@@ -66,7 +66,15 @@ runs:
           echo "::error::Unsupported OS. Install Google Chrome manually on this runner."
           exit 1
         fi
-        echo "CHROME_PATH=$(which google-chrome)" >> $GITHUB_ENV
+        CHROME_BIN=$(which google-chrome)
+        WRAPPER="/usr/local/bin/chrome-wrapper"
+        cat > "$WRAPPER" << SCRIPT
+        #!/bin/bash
+        exec $CHROME_BIN --no-sandbox --disable-dev-shm-usage "\$@"
+        SCRIPT
+        chmod +x "$WRAPPER"
+        echo "CHROME_PATH=$WRAPPER" >> $GITHUB_ENV
+        echo "Chrome wrapper created at $WRAPPER"
 
     - name: Install LHCI
       shell: bash
