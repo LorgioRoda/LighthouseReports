@@ -79,11 +79,11 @@ runs:
 
     - name: Run Lighthouse CI (mobile)
       shell: bash
-      run: lhci autorun --config="${{ github.action_path }}/.lighthouserc.mobile.json"
+      run: lhci autorun --config="${{ github.action_path }}/.lighthouserc.mobile.json" --collect.chromeFlags="--no-sandbox --disable-dev-shm-usage"
 
     - name: Run Lighthouse CI (desktop)
       shell: bash
-      run: lhci autorun --config="${{ github.action_path }}/.lighthouserc.desktop.json"
+      run: lhci autorun --config="${{ github.action_path }}/.lighthouserc.desktop.json" --collect.chromeFlags="--no-sandbox --disable-dev-shm-usage"
 
     - name: Upload reports to Gists
       shell: bash
