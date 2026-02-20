@@ -40,6 +40,11 @@ runs:
         corepack prepare pnpm@9 --activate
         pnpm install --frozen-lockfile
 
+    - name: Install Chrome
+      uses: browser-actions/setup-chrome@v1
+      with:
+        chrome-version: stable
+
     - name: Install LHCI
       shell: bash
       run: npm install -g @lhci/cli
