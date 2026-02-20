@@ -7,7 +7,6 @@ export interface LighthouseConfig {
       numberOfRuns: number;
       settings: Record<string, unknown>;
       chromePath?: string;
-      chromeFlags?: string[];
     };
     upload: {
       target: string;
@@ -23,10 +22,12 @@ export function parseUrls(input: string): string[] {
     .filter((url) => url.length > 0);
 }
 
-function applyChromePath(config: LighthouseConfig): void {
+const CI_CHROME_FLAGS = ["--no-sandbox", "--disable-dev-shm-usage"];
+
+function applyChromeSettings(config: LighthouseConfig): void {
+  config.ci.collect.settings.chromeFlags = CI_CHROME_FLAGS;
   if (process.env.CHROME_PATH) {
     config.ci.collect.chromePath = process.env.CHROME_PATH;
-    config.ci.collect.chromeFlags = ["--no-sandbox"];
   }
 }
 
@@ -49,7 +50,7 @@ export function buildMobileConfig(
       },
     },
   };
-  applyChromePath(config);
+  applyChromeSettings(config);
   return config;
 }
 
@@ -87,7 +88,7 @@ export function buildDesktopConfig(
       },
     },
   };
-  applyChromePath(config);
+  applyChromeSettings(config);
   return config;
 }
 
