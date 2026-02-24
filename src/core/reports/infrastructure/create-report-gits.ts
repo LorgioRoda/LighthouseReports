@@ -13,6 +13,7 @@ export class CreateReportGits implements ReportRepository {
         content: string;
         description: string;
         type: string;
+        testUrl: string;
         performance: number;
     }): Promise<Report> {
         const response = await this.octokit.gists.create({
@@ -24,6 +25,7 @@ export class CreateReportGits implements ReportRepository {
     
           return {
             type: params.type,
+            testUrl: params.testUrl,
             id: res.id,
             viewerUrl: res.viewerUrl,
             filename: res.filename,

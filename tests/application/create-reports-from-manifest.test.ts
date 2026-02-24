@@ -37,11 +37,13 @@ class FakeReportRepository implements ReportRepository{
         content: string;
         description: string;
         type: string;
+        testUrl: string;
         performance: number;
     }): Promise<Report>  {
         this.lastParams = params
         return {
             type: params.type,
+            testUrl: params.testUrl,
             id: 'fake-id',
             viewerUrl: 'fake.com',
             filename: params.filename,
@@ -60,6 +62,7 @@ describe('create-reports-from-manifest', () => {
         expect(results[0].viewerUrl).toBe("fake.com");
         expect(results[0].id).toBe("fake-id");
         expect(results[0].filename).toBe("test.json");
+        expect(results[0].testUrl).toBe("http://test.com");
 
     })
  })

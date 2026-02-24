@@ -9,11 +9,13 @@ class FakeReportRepository implements ReportRepository{
         content: string;
         description: string;
         type: string;
+        testUrl: string;
         performance: number;
     }): Promise<Report>  {
         this.lastParams = params
         return {
             type: params.type,
+            testUrl: params.testUrl,
             id: 'fake-id',
             viewerUrl: 'fake.com',
             filename: params.filename,
@@ -32,21 +34,22 @@ describe('CreateReport', () => {
     it('should create a description', async ()  => {
         const fakeRepo = new FakeReportRepository()
         const createReport = new CreateReport(fakeRepo)
-        await createReport.execute("report.json", "{}", "mobile", 0.35);
-        expect(fakeRepo.lastParams.description).toBe("Lighthouse Report - MOBILE (35% performance)")
+        await createReport.execute("report.json", "{}", "mobile", "http://test.com", 0.35);
+        expect(fakeRepo.lastParams.description).toBe("Lighthouse Report - MOBILE - http://test.com (35% performance)")
     })
     it('should send report data like content, filename, type and performance', async () => {
         const fakeRepo = new FakeReportRepository()
         const createReport = new CreateReport(fakeRepo)
-        await createReport.execute("report.json", "{}", "mobile", 0.35);
-        expect(fakeRepo.lastParams).toMatchObject( {"content": "{}", "description": "Lighthouse Report - MOBILE (35% performance)", "filename": "report.json", "performance": 0.35, "type": "mobile"})
+        await createReport.execute("report.json", "{}", "mobile", "http://test.com", 0.35);
+        expect(fakeRepo.lastParams).toMatchObject( {"content": "{}", "description": "Lighthouse Report - MOBILE - http://test.com (35% performance)", "filename": "report.json", "performance": 0.35, "type": "mobile", "testUrl": "http://test.com"})
     })
     it('should return a report with correct fields', async () => {
         const fakeRepo = new FakeReportRepository()
         const createReport = new CreateReport(fakeRepo)
-        const report = await createReport.execute("report.json", "{}", "mobile", 0.35);
+        const report = await createReport.execute("report.json", "{}", "mobile", "http://test.com", 0.35);
          expect(report).toMatchObject({
           type: "mobile",
+          testUrl: "http://test.com",
           id: "fake-id",
           viewerUrl: "fake.com",
           filename: "report.json",
@@ -56,7 +59,7 @@ describe('CreateReport', () => {
     it('should throw error when repository fails', async () => {
         const fakeRepo = new FakeReportRepositoryWithError()
         const createReport = new CreateReport(fakeRepo)
-        const report = createReport.execute("report.json", "{}", "mobile", 0.35);
+        const report = createReport.execute("report.json", "{}", "mobile", "http://test.com", 0.35);
         await expect(report).rejects.toThrow("GitHub API failed");
 
     })

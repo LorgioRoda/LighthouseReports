@@ -18,11 +18,11 @@ export class HandleManifest {
           }
 
           console.log(
-            `✅ Found representative run for ${manifest.type}: Performance ${Math.round(
-              representativeRun[0].summary.performance * 100
-            )}%`
+            `✅ Found representative run for ${manifest.type}: 
+            Performance ${representativeRun.map((manifest) => 
+            Math.round(manifest.summary.performance * 100))}%`
           );
-          return [{ run: representativeRun[0], type: manifest.type }];
+          return representativeRun.map(run => ({ run, type: manifest.type }));
         });
 
         if (representativeRuns.length === 0) {

@@ -107,7 +107,7 @@ describe("readAllManifests", () => {
   it('should find multiples manifest', () => {
     const fakeManifest = new FakeManifest(fakeManifestSources)
     const manifest = new HandleManifest(fakeManifest).findAllRepresentativeRuns()
-    expect(manifest.length).toBe(2)
+    expect(manifest.length).toBe(4)
   })
   it('should find summary values', () => {
     const fakeManifest = new FakeManifest(fakeManifestSources)

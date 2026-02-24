@@ -14,11 +14,14 @@ inputs:
     default: "3"
 
 outputs:
+  results:
+    description: "JSON array with all report results [{type, testUrl, viewerUrl, performance}]"
+    value: ${{ steps.parse-results.outputs.results }}
   mobile-viewer-url:
-    description: "Lighthouse viewer URL for the mobile report"
+    description: "Lighthouse viewer URL for the first mobile report (backwards compatibility)"
     value: ${{ steps.parse-results.outputs.mobile-viewer-url }}
   desktop-viewer-url:
-    description: "Lighthouse viewer URL for the desktop report"
+    description: "Lighthouse viewer URL for the first desktop report (backwards compatibility)"
     value: ${{ steps.parse-results.outputs.desktop-viewer-url }}
   average-performance:
     description: "Average performance score across all reports"
@@ -104,9 +107,11 @@ runs:
       id: parse-results
       shell: bash
       run: |
+        RESULTS=$(node -e "const r=JSON.parse(require('fs').readFileSync('results.json','utf8')); console.log(JSON.stringify(r.map(x=>({type:x.type,testUrl:x.testUrl,viewerUrl:x.viewerUrl,performance:x.performance}))))")
         MOBILE_URL=$(node -e "const r=JSON.parse(require('fs').readFileSync('results.json','utf8')); const m=r.find(x=>x.type==='mobile'); console.log(m?.viewerUrl||'')")
         DESKTOP_URL=$(node -e "const r=JSON.parse(require('fs').readFileSync('results.json','utf8')); const d=r.find(x=>x.type==='desktop'); console.log(d?.viewerUrl||'')")
         AVG=$(node -e "const r=JSON.parse(require('fs').readFileSync('results.json','utf8')); console.log(Math.round(r.reduce((s,x)=>s+x.performance,0)/r.length))")
+        echo "results=$RESULTS" >> $GITHUB_OUTPUT
         echo "mobile-viewer-url=$MOBILE_URL" >> $GITHUB_OUTPUT
         echo "desktop-viewer-url=$DESKTOP_URL" >> $GITHUB_OUTPUT
         echo "average-performance=$AVG" >> $GITHUB_OUTPUT
@@ -120,18 +125,20 @@ runs:
     - name: Generate summary
       shell: bash
       run: |
-        MOBILE_URL=$(node -e "const r=JSON.parse(require('fs').readFileSync('results.json','utf8')); const m=r.find(x=>x.type==='mobile'); console.log(m?.viewerUrl||'')")
-        DESKTOP_URL=$(node -e "const r=JSON.parse(require('fs').readFileSync('results.json','utf8')); const d=r.find(x=>x.type==='desktop'); console.log(d?.viewerUrl||'')")
-        MOBILE_PERF=$(node -e "const r=JSON.parse(require('fs').readFileSync('results.json','utf8')); const m=r.find(x=>x.type==='mobile'); console.log(m?Math.round(m.performance):'-')")
-        DESKTOP_PERF=$(node -e "const r=JSON.parse(require('fs').readFileSync('results.json','utf8')); const d=r.find(x=>x.type==='desktop'); console.log(d?Math.round(d.performance):'-')")
         AVG=$(node -e "const r=JSON.parse(require('fs').readFileSync('results.json','utf8')); console.log(Math.round(r.reduce((s,x)=>s+x.performance,0)/r.length))")
+        ROWS=$(node -e "
+          const r=JSON.parse(require('fs').readFileSync('results.json','utf8'));
+          r.forEach(x => {
+            const perf = Math.round(x.performance);
+            console.log('| ' + x.type + ' | ' + x.testUrl + ' | ' + perf + '% | [View Report](' + x.viewerUrl + ') |');
+          });
+        ")
         cat >> $GITHUB_STEP_SUMMARY << EOF
         ## Lighthouse CI Results
 
-        | Device | Performance | Viewer |
-        |--------|------------|--------|
-        | Mobile | ${MOBILE_PERF}% | [View Report](${MOBILE_URL}) |
-        | Desktop | ${DESKTOP_PERF}% | [View Report](${DESKTOP_URL}) |
+        | Device | URL | Performance | Viewer |
+        |--------|-----|------------|--------|
+        ${ROWS}
 
         **Average Performance: ${AVG}%**
         EOF

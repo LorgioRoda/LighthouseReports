@@ -6,6 +6,7 @@ export interface ReportRepository {
     content: string;
     description: string;
     type: string;
+    testUrl: string;
     performance: number;
   }): Promise<Report>;
 } 

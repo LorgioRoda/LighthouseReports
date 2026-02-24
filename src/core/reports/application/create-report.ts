@@ -10,21 +10,24 @@ export class CreateReport {
         filename: string,
         content: string,
         type: string,
+        testUrl: string,
         performance: number,
       ): Promise<Report> {
         try {
-          const description = this.getDescription(type, performance);
+          const description = this.getDescription(type, testUrl, performance);
 
           const report = await this.reportRepository.createReport({
             filename,
             content,
             description,
             type,
+            testUrl,
             performance,
           });
 
           return {
             type,
+            testUrl,
             id: report.id,
             viewerUrl: report.viewerUrl,
             filename: report.filename,
@@ -36,8 +39,8 @@ export class CreateReport {
         }
       }
 
-    private getDescription(type: string, performance: number): string {
-        return `Lighthouse Report - ${type.toUpperCase()} (${Math.round(
+    private getDescription(type: string, testUrl: string, performance: number): string {
+        return `Lighthouse Report - ${type.toUpperCase()} - ${testUrl} (${Math.round(
             performance * 100
           )}% performance)`;
     }

@@ -8,7 +8,7 @@ function displaySummary(results: Report[]): void {
   console.log("=".repeat(50));
 
   results.forEach((result) => {
-    console.log(`${result.type.toUpperCase()}`);
+    console.log(`${result.type.toUpperCase()} - ${result.testUrl}`);
     console.log(`  Performance: ${Math.round(result.performance)}%`);
     console.log(`  Viewer: ${result.viewerUrl}`);
     console.log("");

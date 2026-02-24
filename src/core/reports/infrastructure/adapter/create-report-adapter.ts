@@ -9,5 +9,6 @@ export const createReportAdapter = (gits: any): Report => {
         filename: gits.files,
         performance: 0,
         type: gits.type ?? "",
+        testUrl: "",
     }
 }
