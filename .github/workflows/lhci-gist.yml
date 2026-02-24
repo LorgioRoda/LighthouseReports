@@ -16,7 +16,7 @@ jobs:
         id: lighthouse
         uses: ./
         with:
-          urls: ["https://www.cupraofficial.dk/carshop/w/model, https://www.seat.fr/configurateur/w/model?wf=seat-fr-fr"]
+          urls: "https://www.cupraofficial.dk/carshop/w/model, https://www.seat.fr/configurateur/w/model?wf=seat-fr-fr"
           gh-token: ${{ secrets.GH_TOKEN }}
 
       - name: Print results
