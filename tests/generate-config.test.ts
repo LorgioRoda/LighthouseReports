@@ -1,4 +1,6 @@
-import { parseUrls, buildMobileConfig, buildDesktopConfig } from "../src/generate-config";
+import { buildDesktopConfig } from "../src/core/reports/application/build-desktop-config";
+import { buildMobileConfig } from "../src/core/reports/application/build-mobile-config";
+import { parseUrls } from "../src/generate-config";
 
 describe("parseUrls", () => {
   it("should split comma-separated URLs and trim whitespace", () => {

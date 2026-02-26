@@ -1,4 +1,6 @@
 import * as fs from "fs";
+import { buildMobileConfig } from "./core/reports/application/build-mobile-config";
+import { buildDesktopConfig } from "./core/reports/application/build-desktop-config";
 
 export interface LighthouseConfig {
   ci: {
@@ -24,72 +26,11 @@ export function parseUrls(input: string): string[] {
 
 const CI_CHROME_FLAGS = ["--no-sandbox", "--disable-dev-shm-usage"];
 
-function applyChromeSettings(config: LighthouseConfig): void {
+export function applyChromeSettings(config: LighthouseConfig): void {
   config.ci.collect.settings.chromeFlags = CI_CHROME_FLAGS;
   if (process.env.CHROME_PATH) {
     config.ci.collect.chromePath = process.env.CHROME_PATH;
   }
-}
-
-export function buildMobileConfig(
-  urls: string[],
-  numberOfRuns: number,
-): LighthouseConfig {
-  const config: LighthouseConfig = {
-    ci: {
-      collect: {
-        url: urls,
-        numberOfRuns,
-        settings: {
-          formFactor: "mobile",
-        },
-      },
-      upload: {
-        target: "filesystem",
-        outputDir: "./.lighthouse-reports/mobile",
-      },
-    },
-  };
-  applyChromeSettings(config);
-  return config;
-}
-
-export function buildDesktopConfig(
-  urls: string[],
-  numberOfRuns: number,
-): LighthouseConfig {
-  const config: LighthouseConfig = {
-    ci: {
-      collect: {
-        url: urls,
-        numberOfRuns,
-        settings: {
-          formFactor: "desktop",
-          screenEmulation: {
-            mobile: false,
-            width: 1024,
-            height: 850,
-            deviceScaleFactor: 1,
-            disabled: false,
-          },
-          throttling: {
-            rttMs: 40,
-            throughputKbps: 10240,
-            cpuSlowdownMultiplier: 1,
-            requestLatencyMs: 0,
-            downloadThroughputKbps: 0,
-            uploadThroughputKbps: 0,
-          },
-        },
-      },
-      upload: {
-        target: "filesystem",
-        outputDir: "./.lighthouse-reports/desktop",
-      },
-    },
-  };
-  applyChromeSettings(config);
-  return config;
 }
 
 function writeConfig(path: string, config: LighthouseConfig): void {
