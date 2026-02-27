@@ -1,4 +1,4 @@
-import { FileReader } from "../domain/file-reader";
+import { FileReader } from "../domain/file-reader.ts";
 import * as fs from "fs";
 
 

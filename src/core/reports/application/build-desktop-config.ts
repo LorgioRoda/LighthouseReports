@@ -1,4 +1,4 @@
-import { LighthouseConfig, applyChromeSettings } from "../../../generate-config";
+import { LighthouseConfig, applyChromeSettings } from "../../../generate-config.ts";
 
 export function buildDesktopConfig(
   urls: string[],

@@ -1,6 +1,6 @@
 import * as fs from "fs";
-import { ManifestSource, ManifestRun } from "../domain/manifest";
-import { ManifestRepository } from "../domain/manifest-repository";
+import { ManifestSource, ManifestRun } from "../domain/manifest.ts";
+import { ManifestRepository } from "../domain/manifest-repository.ts";
 
 export class ManifestReader implements ManifestRepository {
   constructor(

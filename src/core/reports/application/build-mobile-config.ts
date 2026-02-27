@@ -1,4 +1,4 @@
-import { applyChromeSettings, LighthouseConfig } from "../../../generate-config";
+import { applyChromeSettings, LighthouseConfig } from "../../../generate-config.ts";
 
 export function buildMobileConfig(
   urls: string[],

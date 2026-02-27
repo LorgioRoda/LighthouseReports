@@ -1,5 +1,5 @@
-import { ManifestRepository } from "../domain/manifest-repository";
-import { ManifestRun } from "../domain/manifest";
+import { ManifestRepository } from "../domain/manifest-repository.ts";
+import { ManifestRun } from "../domain/manifest.ts";
 
 export class HandleManifest {
     constructor(
