@@ -1,6 +1,6 @@
 import * as fs from "fs";
-import { buildMobileConfig } from "./core/reports/application/build-mobile-config";
-import { buildDesktopConfig } from "./core/reports/application/build-desktop-config";
+import { buildMobileConfig } from "./core/reports/application/build-mobile-config.ts";
+import { buildDesktopConfig } from "./core/reports/application/build-desktop-config.ts";
 
 export interface LighthouseConfig {
   ci: {

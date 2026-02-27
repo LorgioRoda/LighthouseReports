@@ -1,7 +1,7 @@
-import { FileReader } from "../domain/file-reader";
-import { CreateReport } from "./create-report";
-import { HandleManifest } from "./handle-manifest";
-import { Report } from "../domain/report";
+import { FileReader } from "../domain/file-reader.ts";
+import { CreateReport } from "./create-report.ts";
+import { HandleManifest } from "./handle-manifest.ts";
+import { Report } from "../domain/report.ts";
 
 export class CreateReportsFromManifest {
   constructor(
